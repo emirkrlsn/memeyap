@@ -124,7 +124,7 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
 9. Bir oyuncunun bağlantısı **kaç saniye** koparsa "ayrıldı" sayılsın?
    **Karar:** **30 saniye.**
 10. Kullanıcı adı **uzunluk sınırı** ve izin verilen karakterler neler olacak?
-   **Karar:** En fazla **16 karakter**. (En az uzunluk ve izin verilen karakterler henüz belirlenmedi.)
+   **Karar:** **4–16 karakter.** Tüm harfler (Türkçe ve diğer diller), rakamlar, boşluk ve özel karakterler serbest. Baştaki/sondaki boşluklar kırpılır; kontrol karakterleri (satır sonu, sekme vb.) reddedilir.
 
 ---
 
