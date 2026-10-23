@@ -1,0 +1,14 @@
+# Planlama dokümanları ve dış kaynaklı dosyalar olduğu gibi kalsın
+*.md
+.claude/
+skills-lock.json
+public/
+package-lock.json
+
+# Üretilen dosyalar
+.next/
+supabase/.temp/
+src/types/database.ts
+playwright-report/
+test-results/
+coverage/
