@@ -14,7 +14,6 @@ export const strings = {
   },
   common: {
     close: "Kapat",
-    loading: "Yükleniyor…",
   },
   home: {
     comingSoon: "Oyun odaları çok yakında burada!",

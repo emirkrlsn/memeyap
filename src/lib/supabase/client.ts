@@ -2,12 +2,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/types/database";
 
-export type TypedSupabaseClient = SupabaseClient<Database>;
+let client: SupabaseClient<Database> | undefined;
 
-let client: TypedSupabaseClient | undefined;
-
-/** Tarayıcıda kullanılan tekil Supabase istemcisi. */
-export function getSupabaseClient(): TypedSupabaseClient {
+/** Tarayıcıda kullanılan tekil Supabase istemcisi. Oturum localStorage'da saklanır. */
+export function getSupabaseClient(): SupabaseClient<Database> {
   if (client) return client;
 
   // NEXT_PUBLIC_ değişkenleri derleme sırasında koda gömülür; bu yüzden doğrudan okunmalı.
@@ -19,8 +17,6 @@ export function getSupabaseClient(): TypedSupabaseClient {
     );
   }
 
-  client = createClient<Database>(url, key, {
-    auth: { persistSession: true, autoRefreshToken: true },
-  });
+  client = createClient<Database>(url, key);
   return client;
 }
