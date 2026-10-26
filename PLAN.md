@@ -116,10 +116,14 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
 2. Pas hakkı **her tur yenilenecek mi**, yoksa **tüm oyun boyunca** mı geçerli olacak?
    **Karar:** **Her tur yenilenir.**
 3. Herkes oyunu bitirdiyse, oylama 30 saniye dolmadan bir sonraki meme'e **erken geçilsin mi**?
+   **Karar:** **Evet**, oy verebilecek bağlı herkes oy verince hemen geçilir.
 4. Oylama bitince sahibin açıklandığı ekran **kaç saniye** görünsün? O ekranda oy dağılımı (kaç kişi hangi seçeneği verdi) da gösterilsin mi?
+   **Karar:** **45 saniye**, oy dağılımı **gösterilir**.
 5. Ara sıralama ekranından sonraki tura **host butona basınca mı**, yoksa **belirli bir süre sonra otomatik** mi geçilsin?
+   **Karar:** **Host butona basınca.** (Son turdan sonra ara sıralama yerine doğrudan oyun sonuna geçilir.)
 6. Eşit puanda sıra numaralandırması: **1, 1, 3** mü yoksa **1, 1, 2** mi?
 7. Oyun sırasında bağlı oyuncu sayısı **3'ün altına düşerse** ne olsun?
+   **Karar:** Oyun **otomatik olarak biter** (oyun sonu ekranına geçilir). Bağlantı kopması 30 sn kuralıyla belirlenir.
 8. Veriler **ne zaman silinsin**? (Örn. son oyuncu odadan çıkınca veya oyun bittikten X saat sonra.) Not: oyun bittiği anda silinirse oyun sonu indirme çalışmaz.
 9. Bir oyuncunun bağlantısı **kaç saniye** koparsa "ayrıldı" sayılsın?
    **Karar:** **30 saniye.**
@@ -173,6 +177,15 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
   - Kutu başına en fazla 200 karakter (kötüye kullanıma karşı teknik sınır).
   - `rooms.used_template_ids` bu oyunda dağıtılan şablonları, `rooms.vote_queue` oylanacak meme'leri (rastgele sırada) tutar.
   - Süre bitiminden sonra 2 sn tolerans tanınır (son kayıtlar yetişsin); pg_cron işi 5 sn'de bir süresi geçen turları ilerletir.
+- **Faz 3'te uygulanan kararlar:**
+  - Oylama: her meme 30 sn (+2 sn tolerans); oy verebilecek **bağlı** herkes oy verince erken geçilir. Oy süre bitene kadar değiştirilebilir.
+  - Oy verebilenler: bu turda oynayanlar (geç katılanlar hariç), meme'in sahibi hariç. Süre içinde oy vermeyen (kopmuş olsa da) otomatik "fena değil" (0) alır.
+  - Açıklama 45 sn; sahip, toplam puan ve oy dağılımı gösterilir. Oylar tablodan okunamaz; dağılım sadece açıklamada RPC ile döner.
+  - Oylama sırasında hangi oyuncunun oy verdiği gösterilmez (sahip, oy vermeyen kişi olarak anlaşılmasın); sadece "x/y oy verildi" sayısı gösterilir.
+  - Hiç meme gönderilmemişse tur doğrudan ara sıralamaya geçer. Son turdan sonra ara sıralama yerine oyun sonu (`final`) gelir.
+  - Oyun sırasında bağlı oyuncu 3'ün altına düşerse oyun biter (`rooms.ended_early`).
+  - `memes.points` meme'in aldığı puanı, `memes.shown_at` oylamada ekrana geldiği anı tutar (Faz 4'te indirme izni için).
+  - Eşit puanlılar şimdilik kullanıcı adına göre sıralanır; sıra numarası (Açık karar 6) Faz 5'te.
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

@@ -17,12 +17,12 @@ import {
 import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { useSecondsLeft } from "@/lib/supabase/server-clock";
+import { useAdvanceWhenDue } from "@/lib/supabase/use-advance";
 import type { Player, Room } from "@/lib/supabase/use-room";
 
 const SAVE_DELAY_MS = 600;
 /** Sunucu süre bitiminden 2 sn sonra ilerletir; istemci biraz daha bekler. */
 const ADVANCE_AFTER_SECONDS = 2.5;
-const ADVANCE_RETRY_MS = 3000;
 
 type Props = { room: Room; players: Player[]; me: Player };
 
@@ -35,7 +35,6 @@ export function MemeEditor({ room, players, me }: Props) {
   const [busy, setBusy] = useState(false);
   const pendingBoxes = useRef<Box[] | null>(null);
   const saveTimer = useRef<number | undefined>(undefined);
-  const lastAdvance = useRef(0);
 
   const secondsLeft = useSecondsLeft(room.phase_ends_at) ?? 0;
   const timeUp = secondsLeft <= 0;
@@ -88,16 +87,11 @@ export function MemeEditor({ room, players, me }: Props) {
     saveTimer.current = window.setTimeout(flush, SAVE_DELAY_MS);
   }
 
-  // Süre bitmeden son hâli kaydet; bittikten sonra sunucudan ilerlemesini iste.
-  // (Sunucu da pg_cron ile kendi kendine ilerler; bu sadece beklemeyi kısaltır.)
+  // Süre bitmeden son hâli kaydet.
   useEffect(() => {
     if (secondsLeft < 1.5 && pendingBoxes.current) void flush();
-    const due = secondsLeft <= -ADVANCE_AFTER_SECONDS;
-    if (due && Date.now() - lastAdvance.current > ADVANCE_RETRY_MS) {
-      lastAdvance.current = Date.now();
-      void getSupabaseClient().rpc("advance_phase");
-    }
   }, [secondsLeft, flush]);
+  useAdvanceWhenDue(secondsLeft, ADVANCE_AFTER_SECONDS);
 
   async function run(action: () => PromiseLike<{ error: unknown }>) {
     setBusy(true);

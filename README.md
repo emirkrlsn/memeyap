@@ -45,8 +45,8 @@ npx supabase link --project-ref <PROJECT_ID>
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier ile tüm dosyaları biçimlendir |
 | `npm test` | Vitest birim testleri |
-| `npm run test:e2e` | Playwright uçtan uca testleri (geliştirme sunucusunu kendisi başlatır) |
-| `npm run test:db` | `supabase/tests/*.sql` sunucu kuralı testlerini bağlı projede çalıştırır (değişiklikler geri alınır) |
+| `npm run test:e2e` | Playwright uçtan uca testleri (geliştirme sunucusunu kendisi başlatır; oylama testi süreleri ileri sarmak için `SUPABASE_ACCESS_TOKEN` kullanır) |
+| `npm run test:db` | `supabase/tests/*.sql` sunucu kuralı testlerini bağlı projede çalıştırır (değişiklikler geri alınır) ve puan tablosunun sunucu/istemcide aynı olduğunu doğrular |
 | `npm run templates:seed` | `templates/` klasöründeki görselleri Supabase'e yükler ve şablon tablosunu günceller |
 | `npm run db:push` | `supabase/migrations/` içindeki yeni migration'ları bağlı projeye uygula |
 | `npm run db:types` | Veritabanı şemasından `src/types/database.ts` tiplerini üret |

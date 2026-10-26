@@ -20,8 +20,10 @@ export type Database = {
           id: string
           is_submitted: boolean
           player_id: string
+          points: number
           room_id: string
           round: number
+          shown_at: string | null
           template_id: string
           updated_at: string
         }
@@ -30,8 +32,10 @@ export type Database = {
           id?: string
           is_submitted?: boolean
           player_id: string
+          points?: number
           room_id: string
           round: number
+          shown_at?: string | null
           template_id: string
           updated_at?: string
         }
@@ -40,8 +44,10 @@ export type Database = {
           id?: string
           is_submitted?: boolean
           player_id?: string
+          points?: number
           room_id?: string
           round?: number
+          shown_at?: string | null
           template_id?: string
           updated_at?: string
         }
@@ -121,6 +127,9 @@ export type Database = {
           code: string
           created_at: string
           current_round: number
+          current_vote_index: number
+          current_vote_meme_id: string | null
+          ended_early: boolean
           finished_at: string | null
           host_player_id: string | null
           id: string
@@ -136,6 +145,9 @@ export type Database = {
           code: string
           created_at?: string
           current_round?: number
+          current_vote_index?: number
+          current_vote_meme_id?: string | null
+          ended_early?: boolean
           finished_at?: string | null
           host_player_id?: string | null
           id?: string
@@ -151,6 +163,9 @@ export type Database = {
           code?: string
           created_at?: string
           current_round?: number
+          current_vote_index?: number
+          current_vote_meme_id?: string | null
+          ended_early?: boolean
           finished_at?: string | null
           host_player_id?: string | null
           id?: string
@@ -163,6 +178,13 @@ export type Database = {
           vote_queue?: string[]
         }
         Relationships: [
+          {
+            foreignKeyName: "rooms_current_vote_meme_id_fkey"
+            columns: ["current_vote_meme_id"]
+            isOneToOne: false
+            referencedRelation: "memes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rooms_host_player_id_fkey"
             columns: ["host_player_id"]
@@ -208,19 +230,70 @@ export type Database = {
         }
         Relationships: []
       }
+      votes: {
+        Row: {
+          created_at: string
+          id: string
+          is_auto: boolean
+          meme_id: string
+          points: number
+          rating: Database["public"]["Enums"]["vote_rating"]
+          voter_player_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_auto?: boolean
+          meme_id: string
+          points: number
+          rating: Database["public"]["Enums"]["vote_rating"]
+          voter_player_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_auto?: boolean
+          meme_id?: string
+          points?: number
+          rating?: Database["public"]["Enums"]["vote_rating"]
+          voter_player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_meme_id_fkey"
+            columns: ["meme_id"]
+            isOneToOne: false
+            referencedRelation: "memes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_voter_player_id_fkey"
+            columns: ["voter_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       advance_phase: { Args: never; Returns: undefined }
+      cast_vote: {
+        Args: { p_rating: Database["public"]["Enums"]["vote_rating"] }
+        Returns: undefined
+      }
       create_room: { Args: { p_username: string }; Returns: string }
+      get_current_vote_meme: { Args: never; Returns: Json }
       heartbeat: { Args: never; Returns: undefined }
       join_room: {
         Args: { p_code: string; p_username: string }
         Returns: string
       }
       leave_room: { Args: never; Returns: undefined }
+      next_round: { Args: never; Returns: undefined }
       reroll_template: { Args: never; Returns: string }
       save_meme: { Args: { p_boxes: Json }; Returns: undefined }
       server_now: { Args: never; Returns: string }
@@ -244,6 +317,12 @@ export type Database = {
         | "round_results"
         | "final"
       template_kind: "image" | "gif"
+      vote_rating:
+        | "cok_begenildi"
+        | "begenildi"
+        | "fena_degil"
+        | "begenilmedi"
+        | "berbat"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -380,6 +459,13 @@ export const Constants = {
         "final",
       ],
       template_kind: ["image", "gif"],
+      vote_rating: [
+        "cok_begenildi",
+        "begenildi",
+        "fena_degil",
+        "begenilmedi",
+        "berbat",
+      ],
     },
   },
 } as const

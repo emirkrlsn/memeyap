@@ -1,32 +1,10 @@
-import {
-  devices,
-  expect,
-  test,
-  type Browser,
-  type Page,
-} from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+import { enter, openPlayer } from "./helpers";
 
 // Supabase IP başına saatte 30 anonim girişe izin verdiği için sadece masaüstü projesinde koşar;
 // telefon görünümü, oyunculardan birinin bağlamında ayrıca denenir.
 test.skip(({ isMobile }) => isMobile, "Çok oyunculu test sadece masaüstünde");
-
-async function openPlayer(browser: Browser, mobile = false) {
-  const context = await browser.newContext(mobile ? devices["Pixel 7"] : {});
-  return { context, page: await context.newPage() };
-}
-
-async function enter(page: Page, username: string, code?: string) {
-  await page.goto("/");
-  await page.getByLabel("Kullanıcı adın").fill(username);
-  if (code) {
-    await page.getByLabel("Oyun kodu").fill(code);
-    await page.getByRole("button", { name: "Oyuna Katıl" }).click();
-  } else {
-    await page.getByRole("button", { name: "Oyun Oluştur" }).click();
-  }
-  await page.waitForURL(/\/oda\/[A-Z0-9]{6}$/);
-  return page.url().split("/").pop()!;
-}
 
 const templateSrc = (page: Page) =>
   page.locator("img[src*='/templates/']").first().getAttribute("src");
@@ -115,8 +93,9 @@ test("meme oluşturma: farklı şablonlar, pas, kutular, hazır olma", async ({
     await page.getByRole("button", { name: "Hazırım!" }).click();
   }
   for (const { page } of [a, b, c]) {
-    await expect(page.getByText("Meme'ler hazır!")).toBeVisible();
-    await expect(page.getByText("2 meme oylamaya girdi.")).toBeVisible();
+    // Boş bırakılan meme oylamaya girmez: 3 değil 2 meme oylanır.
+    await expect(page.getByTestId("voting")).toBeVisible();
+    await expect(page.getByText("Meme 1/2")).toBeVisible();
   }
 
   for (const player of [a, b, c]) await player.context.close();

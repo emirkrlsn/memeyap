@@ -18,6 +18,8 @@ import {
 } from "@/lib/supabase/use-room";
 
 import { MemeEditor } from "@/components/game/MemeEditor";
+import { Results } from "@/components/game/Results";
+import { VotingScreen } from "@/components/game/VotingScreen";
 
 import { Lobby } from "./Lobby";
 import { PlayerList } from "./PlayerList";
@@ -69,38 +71,33 @@ type GameProps = { room: Room; players: Player[]; me: Player };
 
 /** Odanın durumuna göre gösterilecek ekran. */
 function GameView({ room, players, me }: GameProps) {
-  if (room.status === "lobby") {
-    return <Lobby room={room} players={players} me={me} />;
-  }
-  const spectating = me.active_from_round > room.current_round;
-  if (room.status === "creating" && !spectating) {
-    return <MemeEditor room={room} players={players} me={me} />;
+  switch (room.status) {
+    case "lobby":
+      return <Lobby room={room} players={players} me={me} />;
+    case "voting":
+    case "reveal":
+      // Her meme için yeniden kur: seçilen oy bir sonrakine taşınmasın.
+      return (
+        <VotingScreen key={room.current_vote_meme_id} room={room} me={me} />
+      );
+    case "round_results":
+    case "final":
+      return <Results room={room} players={players} me={me} />;
   }
 
+  if (me.active_from_round <= room.current_round) {
+    return <MemeEditor room={room} players={players} me={me} />;
+  }
   return (
     <div className="flex w-full flex-col gap-5">
       <Card
         className="flex flex-col items-center gap-2 text-center"
         data-testid="game-status"
       >
-        {spectating ? (
-          <>
-            <h2 className="text-2xl font-black">{strings.room.spectating}</h2>
-            <p className="font-bold text-ink-soft">
-              {strings.room.spectatingDetail(me.active_from_round)}
-            </p>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl font-black">
-              {strings.game.votingStarted}
-            </h2>
-            <p className="font-bold text-ink-soft">
-              {strings.game.votingCount(room.vote_queue.length)}{" "}
-              {strings.game.votingComingSoon}
-            </p>
-          </>
-        )}
+        <h2 className="text-2xl font-black">{strings.room.spectating}</h2>
+        <p className="font-bold text-ink-soft">
+          {strings.room.spectatingDetail(me.active_from_round)}
+        </p>
       </Card>
       <Card>
         <PlayerList room={room} players={players} me={me} />

@@ -1,0 +1,145 @@
+import { expect, test, type Page } from "@playwright/test";
+
+import { enter, fastForward, openPlayer } from "./helpers";
+
+// Supabase IP başına saatte 30 anonim girişe izin verdiği için sadece masaüstünde koşar.
+test.skip(({ isMobile }) => isMobile, "Çok oyunculu test sadece masaüstünde");
+
+const NAMES = ["Ayşe Oylar", "Bora Oylar", "Cem Oylar"];
+
+test("3 oyuncuyla tam tur: oluştur → oyla → açıklama → ara sıralama", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+  const players = await Promise.all(NAMES.map(() => openPlayer(browser)));
+  const pages = players.map((player) => player.page);
+
+  // Oylama sırasında sunucudan gelen meme yanıtlarını topla (sahip sızıyor mu?).
+  const votingResponses: string[] = [];
+  for (const page of pages) {
+    page.on("response", async (response) => {
+      if (!response.url().includes("/rpc/get_current_vote_meme")) return;
+      const body = await response.text().catch(() => "");
+      if (body.includes('"reveal": null') || body.includes('"reveal":null')) {
+        votingResponses.push(body);
+      }
+    });
+  }
+
+  const code = await enter(pages[0], NAMES[0]);
+  await enter(pages[1], NAMES[1], code);
+  await enter(pages[2], NAMES[2], code);
+  await expect(pages[0].getByTestId("player")).toHaveCount(3);
+  await pages[0].getByRole("button", { name: "Oyunu Başlat" }).click();
+
+  // Herkes yazar ve hazır olur.
+  for (const [index, page] of pages.entries()) {
+    await page
+      .getByRole("textbox", { name: "1. kutu" })
+      .fill(`Komik yazı ${index + 1}`);
+  }
+  for (const page of pages) {
+    await page.getByRole("button", { name: "Hazırım!" }).click();
+  }
+
+  // Ekrandaki meme kimin? Sadece sahibi "senin meme'in" yazısını görür.
+  async function ownerIndex() {
+    let found = -1;
+    await expect
+      .poll(async () => {
+        for (const [index, page] of pages.entries()) {
+          if (await page.getByText("Bu senin meme'in!").isVisible())
+            found = index;
+        }
+        return found;
+      })
+      .toBeGreaterThan(-1);
+    return found;
+  }
+
+  const vote = (page: Page, rating: string) =>
+    page.getByRole("button", { name: new RegExp(rating) }).click();
+
+  const scores = [0, 0, 0];
+  for (let memeNumber = 1; memeNumber <= 3; memeNumber++) {
+    for (const page of pages) {
+      await expect(page.getByTestId("voting")).toBeVisible();
+      await expect(page.getByText(`Meme ${memeNumber}/3`)).toBeVisible();
+    }
+    const owner = await ownerIndex();
+    const [first, second] = pages.filter((_, index) => index !== owner);
+    await expect(
+      pages[owner].getByRole("button", { name: /Berbat/ }),
+    ).toHaveCount(0);
+
+    let expected: number;
+    if (memeNumber < 3) {
+      // İki oy da verilince süre dolmadan açıklamaya geçilir.
+      await vote(first, "Çok beğenildi");
+      await expect(first.getByText("Oyun kaydedildi")).toBeVisible();
+      await vote(second, "Berbat");
+      expected = 500 - 250;
+    } else {
+      // Biri oy vermez: süre dolunca otomatik "fena değil" (0) sayılır.
+      await vote(first, "Beğenildi");
+      await fastForward(code);
+      expected = 200;
+    }
+    scores[owner] += expected;
+
+    for (const page of pages) {
+      await expect(page.getByTestId("reveal")).toBeVisible();
+      await expect(page.getByTestId("reveal-owner")).toHaveText(NAMES[owner]);
+      await expect(page.getByTestId("reveal-points")).toHaveText(
+        `+${expected}`,
+      );
+    }
+    const distribution = pages[0].getByTestId("distribution");
+    if (memeNumber < 3) {
+      await expect(
+        distribution.locator("[data-rating=cok_begenildi]"),
+      ).toHaveText("1 oy");
+      await expect(distribution.locator("[data-rating=berbat]")).toHaveText(
+        "1 oy",
+      );
+    } else {
+      await expect(distribution.locator("[data-rating=begenildi]")).toHaveText(
+        "1 oy",
+      );
+      await expect(distribution.locator("[data-rating=fena_degil]")).toHaveText(
+        "1 oy",
+      );
+    }
+
+    await fastForward(code); // 45 sn'lik açıklamayı bekleme
+  }
+
+  // Oylama sırasında hiçbir yanıtta oyuncu adı geçmez (sahip gizli).
+  expect(votingResponses.length).toBeGreaterThan(0);
+  for (const body of votingResponses) {
+    for (const name of NAMES) expect(body).not.toContain(name);
+  }
+
+  // Ara sıralama: puanlar ve yüksekten düşüğe sıra.
+  for (const page of pages) {
+    await expect(page.getByText("1. tur bitti!")).toBeVisible();
+    const rows = page.getByTestId("score-row");
+    await expect(rows).toHaveCount(3);
+    const texts = await rows.allTextContents();
+    const shown = texts.map((text) =>
+      Number(text.match(/([+−]?\d+) puan/)![1].replace("+", "")),
+    );
+    expect(shown).toEqual([...scores].sort((a, b) => b - a));
+  }
+  await expect(
+    pages[1].getByText("Yöneticinin sonraki turu başlatması bekleniyor"),
+  ).toBeVisible();
+
+  // Sonraki turu yönetici başlatır.
+  await pages[0].getByRole("button", { name: "Sonraki tura geç" }).click();
+  for (const page of pages) {
+    await expect(page.getByText("Tur 2/3")).toBeVisible();
+  }
+
+  for (const player of players) await player.context.close();
+});

@@ -86,8 +86,12 @@ export function BoxEditor({
   return (
     <div
       ref={containerRef}
-      className="relative w-full touch-none overflow-hidden rounded-2xl border-[3px] border-ink bg-ink select-none"
-      style={{ aspectRatio: `${width} / ${height}` }}
+      className="relative mx-auto touch-none overflow-hidden rounded-2xl border-[3px] border-ink bg-ink select-none"
+      style={{
+        aspectRatio: `${width} / ${height}`,
+        // Uzun görseller ekranın en fazla %60'ını kaplasın (butonlar görünür kalsın).
+        width: `min(100%, calc(60svh * ${width / height}))`,
+      }}
     >
       {/* GIF'lerin oynaması ve canvas'a çizilebilmesi için düz <img> (CORS açık). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
