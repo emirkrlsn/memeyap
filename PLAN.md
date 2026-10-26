@@ -180,7 +180,7 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
 - **Faz 3'te uygulanan kararlar:**
   - Oylama: her meme 30 sn (+2 sn tolerans); oy verebilecek **bağlı** herkes oy verince erken geçilir. Oy süre bitene kadar değiştirilebilir.
   - Oy verebilenler: bu turda oynayanlar (geç katılanlar hariç), meme'in sahibi hariç. Süre içinde oy vermeyen (kopmuş olsa da) otomatik "fena değil" (0) alır.
-  - Açıklama 45 sn; sahip, toplam puan ve oy dağılımı gösterilir. Oylar tablodan okunamaz; dağılım sadece açıklamada RPC ile döner.
+  - **Güncelleme:** Meme'ler tek tek açıklanmaz (45 sn'lik bekleme yok). Bir meme'in oylaması bitince hemen sıradakine geçilir; tur bitince **tek sayfada** turun tüm meme'leri puana göre sıralı, sahibi ve oy dağılımıyla, altında genel sıralamayla gösterilir (Make It Meme'deki gibi). Oylar tablodan okunamaz; sahipler ve dağılım sadece tur bittikten sonra `get_round_results` ile döner. (`reveal` durumu artık kullanılmıyor.)
   - Oylama sırasında hangi oyuncunun oy verdiği gösterilmez (sahip, oy vermeyen kişi olarak anlaşılmasın); sadece "x/y oy verildi" sayısı gösterilir.
   - Hiç meme gönderilmemişse tur doğrudan ara sıralamaya geçer. Son turdan sonra ara sıralama yerine oyun sonu (`final`) gelir.
   - Oyun sırasında bağlı oyuncu 3'ün altına düşerse oyun biter (`rooms.ended_early`).

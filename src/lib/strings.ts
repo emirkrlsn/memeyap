@@ -72,10 +72,6 @@ export const strings = {
     yours: "Bu senin meme'in! Diğerleri oyluyor…",
     spectating: "Bu turda izleyicisin; bir sonraki turda sen de oynayacaksın.",
     voted: "Oyun kaydedildi. İstersen değiştirebilirsin.",
-    owner: "Bu meme'i yapan:",
-    unknownOwner: "Oyundan ayrılan bir oyuncu",
-    points: "Aldığı puan",
-    votes: (count: number) => `${count} oy`,
   },
   ratings: {
     cok_begenildi: "Çok beğenildi",
@@ -87,6 +83,10 @@ export const strings = {
   results: {
     roundOver: (round: number) => `${round}. tur bitti!`,
     standings: "Ara sıralama",
+    roundMemes: (round: number) => `${round}. turun meme'leri`,
+    noMemes: "Bu turda oylanan meme yok.",
+    madeBy: "Yapan",
+    unknownOwner: "Oyundan ayrılan bir oyuncu",
     nextRound: "Sonraki tura geç",
     waitingForHost: "Yöneticinin sonraki turu başlatması bekleniyor…",
     gameOver: "Oyun bitti!",

@@ -7,7 +7,7 @@ test.skip(({ isMobile }) => isMobile, "Çok oyunculu test sadece masaüstünde")
 
 const NAMES = ["Ayşe Oylar", "Bora Oylar", "Cem Oylar"];
 
-test("3 oyuncuyla tam tur: oluştur → oyla → açıklama → ara sıralama", async ({
+test("3 oyuncuyla tam tur: oluştur → oyla → tur sonucu → sonraki tur", async ({
   browser,
 }) => {
   test.setTimeout(180_000);
@@ -20,9 +20,7 @@ test("3 oyuncuyla tam tur: oluştur → oyla → açıklama → ara sıralama", 
     page.on("response", async (response) => {
       if (!response.url().includes("/rpc/get_current_vote_meme")) return;
       const body = await response.text().catch(() => "");
-      if (body.includes('"reveal": null') || body.includes('"reveal":null')) {
-        votingResponses.push(body);
-      }
+      if (body) votingResponses.push(body);
     });
   }
 
@@ -61,57 +59,31 @@ test("3 oyuncuyla tam tur: oluştur → oyla → açıklama → ara sıralama", 
     page.getByRole("button", { name: new RegExp(rating) }).click();
 
   const scores = [0, 0, 0];
+  const owners: number[] = [];
   for (let memeNumber = 1; memeNumber <= 3; memeNumber++) {
     for (const page of pages) {
       await expect(page.getByTestId("voting")).toBeVisible();
       await expect(page.getByText(`Meme ${memeNumber}/3`)).toBeVisible();
     }
     const owner = await ownerIndex();
+    owners.push(owner);
     const [first, second] = pages.filter((_, index) => index !== owner);
     await expect(
       pages[owner].getByRole("button", { name: /Berbat/ }),
     ).toHaveCount(0);
 
-    let expected: number;
     if (memeNumber < 3) {
-      // İki oy da verilince süre dolmadan açıklamaya geçilir.
+      // İki oy da verilince süre dolmadan (açıklama beklemeden) sıradakine geçilir.
       await vote(first, "Çok beğenildi");
       await expect(first.getByText("Oyun kaydedildi")).toBeVisible();
       await vote(second, "Berbat");
-      expected = 500 - 250;
+      scores[owner] += 500 - 250;
     } else {
       // Biri oy vermez: süre dolunca otomatik "fena değil" (0) sayılır.
       await vote(first, "Beğenildi");
       await fastForward(code);
-      expected = 200;
+      scores[owner] += 200;
     }
-    scores[owner] += expected;
-
-    for (const page of pages) {
-      await expect(page.getByTestId("reveal")).toBeVisible();
-      await expect(page.getByTestId("reveal-owner")).toHaveText(NAMES[owner]);
-      await expect(page.getByTestId("reveal-points")).toHaveText(
-        `+${expected}`,
-      );
-    }
-    const distribution = pages[0].getByTestId("distribution");
-    if (memeNumber < 3) {
-      await expect(
-        distribution.locator("[data-rating=cok_begenildi]"),
-      ).toHaveText("1 oy");
-      await expect(distribution.locator("[data-rating=berbat]")).toHaveText(
-        "1 oy",
-      );
-    } else {
-      await expect(distribution.locator("[data-rating=begenildi]")).toHaveText(
-        "1 oy",
-      );
-      await expect(distribution.locator("[data-rating=fena_degil]")).toHaveText(
-        "1 oy",
-      );
-    }
-
-    await fastForward(code); // 45 sn'lik açıklamayı bekleme
   }
 
   // Oylama sırasında hiçbir yanıtta oyuncu adı geçmez (sahip gizli).
@@ -120,9 +92,28 @@ test("3 oyuncuyla tam tur: oluştur → oyla → açıklama → ara sıralama", 
     for (const name of NAMES) expect(body).not.toContain(name);
   }
 
-  // Ara sıralama: puanlar ve yüksekten düşüğe sıra.
+  // Tur sonucu tek sayfada: meme'ler puana göre sıralı, sahipleri ve oy dağılımıyla;
+  // altında genel sıralama.
   for (const page of pages) {
     await expect(page.getByText("1. tur bitti!")).toBeVisible();
+    await expect(page.getByTestId("round-meme")).toHaveCount(3);
+    await expect(page.getByTestId("meme-owner")).toHaveText(
+      owners.map((owner) => NAMES[owner]),
+    );
+    await expect(page.getByTestId("meme-points")).toHaveText([
+      "+250",
+      "+250",
+      "+200",
+    ]);
+    const firstMeme = page.getByTestId("round-meme").first();
+    await expect(firstMeme.locator("[data-rating=cok_begenildi]")).toHaveText(
+      /1$/,
+    );
+    await expect(firstMeme.locator("[data-rating=berbat]")).toHaveText(/1$/);
+    const lastMeme = page.getByTestId("round-meme").last();
+    await expect(lastMeme.locator("[data-rating=begenildi]")).toHaveText(/1$/);
+    await expect(lastMeme.locator("[data-rating=fena_degil]")).toHaveText(/1$/);
+
     const rows = page.getByTestId("score-row");
     await expect(rows).toHaveCount(3);
     const texts = await rows.allTextContents();

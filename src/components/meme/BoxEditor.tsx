@@ -22,6 +22,8 @@ type Props = {
   onChange?: (boxes: Box[]) => void;
   selected?: number | null;
   onSelect?: (index: number) => void;
+  /** Görselin ekran yüksekliğine oranla en fazla kaplayacağı yer (vh). */
+  maxHeightVh?: number;
 };
 
 /**
@@ -37,6 +39,7 @@ export function BoxEditor({
   onChange,
   selected = null,
   onSelect,
+  maxHeightVh = 60,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -89,8 +92,8 @@ export function BoxEditor({
       className="relative mx-auto touch-none overflow-hidden rounded-2xl border-[3px] border-ink bg-ink select-none"
       style={{
         aspectRatio: `${width} / ${height}`,
-        // Uzun görseller ekranın en fazla %60'ını kaplasın (butonlar görünür kalsın).
-        width: `min(100%, calc(60svh * ${width / height}))`,
+        // Uzun görseller ekranın tamamını kaplamasın (butonlar görünür kalsın).
+        width: `min(100%, calc(${maxHeightVh}svh * ${width / height}))`,
       }}
     >
       {/* GIF'lerin oynaması ve canvas'a çizilebilmesi için düz <img> (CORS açık). */}

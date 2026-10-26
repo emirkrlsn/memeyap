@@ -11,9 +11,11 @@ import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Player, Room } from "@/lib/supabase/use-room";
 
+import { RoundMemes } from "./RoundMemes";
+
 type Props = { room: Room; players: Player[]; me: Player };
 
-/** Tur sonu ara sıralaması (round_results) ve oyun sonu (final). */
+/** Tur sonucu (round_results) ve oyun sonu (final): turun meme'leri puana göre sıralı, ardından genel sıralama. */
 export function Results({ room, players, me }: Props) {
   const { showToast } = useToast();
   const [starting, setStarting] = useState(false);
@@ -43,6 +45,8 @@ export function Results({ room, players, me }: Props) {
           </p>
         )}
       </div>
+
+      <RoundMemes room={room} />
 
       <Card className="flex flex-col gap-3">
         <h3 className="text-xl font-black">

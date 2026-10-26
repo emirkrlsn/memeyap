@@ -16,7 +16,9 @@ import { useAdvanceWhenDue } from "@/lib/supabase/use-advance";
 import type { Player, Room } from "@/lib/supabase/use-room";
 import type { Json } from "@/types/database";
 
-/** get_current_vote_meme yanıtı. Oylama sırasında sahip bilgisi içermez. */
+import { RATING_STYLE } from "./rating-style";
+
+/** get_current_vote_meme yanıtı. Sahip bilgisi içermez. */
 type VoteMeme = {
   meme_id: string;
   index: number;
@@ -27,57 +29,24 @@ type VoteMeme = {
   my_rating: Rating | null;
   votes_cast: number;
   voters: number;
-  reveal: {
-    owner: string | null;
-    points: number;
-    distribution: Record<Rating, number>;
-  } | null;
 };
 
-const RATING_STYLE: Record<Rating, { emoji: string; className: string }> = {
-  cok_begenildi: {
-    emoji: "🤣",
-    className: "bg-mint text-white shadow-[0_5px_0_0_var(--color-mint-dark)]",
-  },
-  begenildi: {
-    emoji: "😄",
-    className: "bg-sky text-white shadow-[0_5px_0_0_var(--color-sky-dark)]",
-  },
-  fena_degil: {
-    emoji: "🙂",
-    className: "bg-sun text-ink shadow-[0_5px_0_0_var(--color-sun-dark)]",
-  },
-  begenilmedi: {
-    emoji: "😕",
-    className: "bg-coral text-white shadow-[0_5px_0_0_var(--color-coral-dark)]",
-  },
-  berbat: {
-    emoji: "🤮",
-    className: "bg-ink text-white shadow-[0_5px_0_0_#000]",
-  },
-};
-
-/** Sunucu oylamayı süre bitiminden 2 sn sonra kapatır; açıklama tam süresinde biter. */
-const VOTING_GRACE_SECONDS = 2.5;
-const REVEAL_GRACE_SECONDS = 0.5;
-/** Oylama sırasında "kaç kişi oy verdi" bilgisini tazeleme aralığı. */
+/** Sunucu oylamayı süre bitiminden 2 sn sonra kapatır; istemci biraz daha bekler. */
+const GRACE_SECONDS = 2.5;
+/** "Kaç kişi oy verdi" bilgisini tazeleme aralığı. */
 const PROGRESS_REFRESH_MS = 3000;
 
 type Props = { room: Room; me: Player };
 
-/** Oylanan meme (voting) ve sahibinin açıklanması (reveal). Her meme için yeniden kurulur. */
+/** Oylanan meme. Her meme için yeniden kurulur; sahibi tur sonuna kadar gizlidir. */
 export function VotingScreen({ room, me }: Props) {
   const { showToast } = useToast();
   const [meme, setMeme] = useState<VoteMeme | null>(null);
   const [myRating, setMyRating] = useState<Rating | null>(null);
-  const isReveal = room.status === "reveal";
   const spectating = me.active_from_round > room.current_round;
 
   const secondsLeft = useSecondsLeft(room.phase_ends_at);
-  useAdvanceWhenDue(
-    secondsLeft,
-    isReveal ? REVEAL_GRACE_SECONDS : VOTING_GRACE_SECONDS,
-  );
+  useAdvanceWhenDue(secondsLeft, GRACE_SECONDS);
 
   useEffect(() => {
     let active = true;
@@ -91,14 +60,12 @@ export function VotingScreen({ room, me }: Props) {
           setMyRating((current) => current ?? next.my_rating);
         });
     void load();
-    const timer = isReveal
-      ? undefined
-      : window.setInterval(load, PROGRESS_REFRESH_MS);
+    const timer = window.setInterval(load, PROGRESS_REFRESH_MS);
     return () => {
       active = false;
       window.clearInterval(timer);
     };
-  }, [isReveal, room.phase_ends_at]);
+  }, [room.phase_ends_at]);
 
   async function vote(rating: Rating) {
     const previous = myRating;
@@ -121,10 +88,7 @@ export function VotingScreen({ room, me }: Props) {
   }
 
   return (
-    <div
-      className="flex w-full flex-col gap-4"
-      data-testid={isReveal ? "reveal" : "voting"}
-    >
+    <div className="flex w-full flex-col gap-4" data-testid="voting">
       <div className="flex items-center justify-between gap-3">
         <span className="rounded-full bg-grape px-3 py-1 text-sm font-black text-white">
           {strings.voting.progress(meme.index, meme.total)}
@@ -133,18 +97,14 @@ export function VotingScreen({ room, me }: Props) {
           data-testid="countdown"
           className={cn(
             "font-meme text-4xl tabular-nums",
-            !isReveal && (secondsLeft ?? 0) <= 10
-              ? "animate-pulse text-coral"
-              : "text-ink",
+            (secondsLeft ?? 0) <= 10 ? "animate-pulse text-coral" : "text-ink",
           )}
         >
           {Math.max(0, Math.ceil(secondsLeft ?? 0))}
         </span>
-        {!isReveal && (
-          <span className="text-sm font-extrabold text-ink-soft">
-            {strings.voting.votesCast(meme.votes_cast, meme.voters)}
-          </span>
-        )}
+        <span className="text-sm font-extrabold text-ink-soft">
+          {strings.voting.votesCast(meme.votes_cast, meme.voters)}
+        </span>
       </div>
 
       <BoxEditor
@@ -154,9 +114,7 @@ export function VotingScreen({ room, me }: Props) {
         boxes={toBoxes(meme.boxes)}
       />
 
-      {isReveal && meme.reveal ? (
-        <Reveal reveal={meme.reveal} />
-      ) : meme.is_mine || spectating ? (
+      {meme.is_mine || spectating ? (
         <Card className="text-center font-extrabold text-ink-soft">
           {meme.is_mine ? strings.voting.yours : strings.voting.spectating}
         </Card>
@@ -173,7 +131,8 @@ export function VotingScreen({ room, me }: Props) {
               onClick={() => void vote(rating)}
               className={cn(
                 "flex min-h-14 items-center gap-3 rounded-2xl px-5 text-lg font-black transition-transform active:translate-y-[5px] active:shadow-none",
-                RATING_STYLE[rating].className,
+                RATING_STYLE[rating].color,
+                RATING_STYLE[rating].shadow,
                 myRating === rating &&
                   "ring-4 ring-grape ring-offset-2 ring-offset-cream",
                 myRating && myRating !== rating && "opacity-60",
@@ -198,72 +157,5 @@ export function VotingScreen({ room, me }: Props) {
         </div>
       )}
     </div>
-  );
-}
-
-function Reveal({ reveal }: { reveal: NonNullable<VoteMeme["reveal"]> }) {
-  const total = Math.max(
-    1,
-    ...RATINGS.map((rating) => reveal.distribution[rating]),
-  );
-  return (
-    <Card className="flex animate-pop-in flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-extrabold text-ink-soft">
-            {strings.voting.owner}
-          </p>
-          <p
-            className="truncate text-2xl font-black"
-            data-testid="reveal-owner"
-          >
-            {reveal.owner ?? strings.voting.unknownOwner}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-extrabold text-ink-soft">
-            {strings.voting.points}
-          </p>
-          <p
-            data-testid="reveal-points"
-            className={cn(
-              "font-meme text-4xl",
-              reveal.points > 0
-                ? "text-mint-dark"
-                : reveal.points < 0
-                  ? "text-coral-dark"
-                  : "text-ink",
-            )}
-          >
-            {formatPoints(reveal.points)}
-          </p>
-        </div>
-      </div>
-      <ul className="flex flex-col gap-1.5" data-testid="distribution">
-        {RATINGS.map((rating) => (
-          <li
-            key={rating}
-            className="flex items-center gap-2 text-sm font-extrabold"
-          >
-            <span aria-hidden>{RATING_STYLE[rating].emoji}</span>
-            <span className="w-28 shrink-0">{strings.ratings[rating]}</span>
-            <span className="h-4 flex-1 overflow-hidden rounded-full bg-ink/10">
-              <span
-                className={cn(
-                  "block h-full rounded-full",
-                  RATING_STYLE[rating].className,
-                )}
-                style={{
-                  width: `${(reveal.distribution[rating] / total) * 100}%`,
-                }}
-              />
-            </span>
-            <span className="w-12 text-right tabular-nums" data-rating={rating}>
-              {strings.voting.votes(reveal.distribution[rating])}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Card>
   );
 }

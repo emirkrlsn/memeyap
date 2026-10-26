@@ -1,4 +1,4 @@
--- Faz 3 sunucu kuralları testi: oylama, sahip gizliliği, puanlama, açıklama, ara sıralama
+-- Faz 3 sunucu kuralları testi: oylama, sahip gizliliği, puanlama, tur sonucu, ara sıralama
 -- ve oyun sonu. Her şey sonunda geri alınır (bkz. supabase/tests/rooms.sql).
 do $$
 declare
@@ -48,7 +48,7 @@ begin
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_voters[1])::text, true);
   v_info := public.get_current_vote_meme();
-  if (v_info ->> 'is_mine')::boolean or v_info -> 'reveal' <> 'null'::jsonb
+  if (v_info ->> 'is_mine')::boolean
     or v_info::text like '%' || (select username from public.players where user_id = v_owner) || '%'
     or v_info::text like '%' || (select id::text from public.players where user_id = v_owner) || '%' then
     raise exception 'TEST FAILED: oylamada sahip sızdı %', v_info;
@@ -85,21 +85,20 @@ begin
   end if;
   perform set_config('request.jwt.claims', json_build_object('sub', v_voters[2])::text, true);
   perform public.cast_vote('berbat');
-  if (select status from public.rooms where id = v_room.id) <> 'reveal' then
-    raise exception 'TEST FAILED: herkes oy verdi ama açıklanmadı';
-  end if;
-  v_info := public.get_current_vote_meme() -> 'reveal';
-  if (v_info ->> 'points')::int <> 250
-    or v_info ->> 'owner' <> (select username from public.players where user_id = v_owner)
-    or (v_info -> 'distribution' ->> 'cok_begenildi')::int <> 1
-    or (v_info -> 'distribution' ->> 'berbat')::int <> 1
-    or (v_info -> 'distribution' ->> 'fena_degil')::int <> 0 then
-    raise exception 'TEST FAILED: açıklama %', v_info;
+  -- Açıklama beklenmez: herkes oy verince hemen sıradaki meme'e geçilir.
+  select * into v_room from public.rooms where id = v_room.id;
+  if v_room.status <> 'voting' or v_room.current_vote_index <> 1 then
+    raise exception 'TEST FAILED: herkes oy verdi ama sıradakine geçilmedi %', v_room.status;
   end if;
   if (select score from public.players where user_id = v_owner) <> 250 then
     raise exception 'TEST FAILED: sahibin puanı';
   end if;
-  v_log := v_log || 'early reveal + scoring ok; ';
+  -- Tur bitmeden sonuçlar (sahipler) görünmez.
+  if public.get_round_results() is not null then
+    raise exception 'TEST FAILED: sonuçlar tur bitmeden göründü';
+  end if;
+  v_log := v_log || 'early advance + scoring ok; ';
+  v_info := jsonb_build_object('first_owner', (select username from public.players where user_id = v_owner));
 
   -- 4) Oylar tablodan okunamaz.
   execute 'set local role authenticated';
@@ -110,20 +109,8 @@ begin
   end;
   execute 'reset role';
 
-  -- 5) Açıklama 45 sn sürer; sonra sıradaki meme oylanır.
-  perform public.advance_phase();
-  if (select status from public.rooms where id = v_room.id) <> 'reveal' then
-    raise exception 'TEST FAILED: açıklama erken bitti';
-  end if;
-  update public.rooms set phase_ends_at = now() - interval '1 second' where id = v_room.id;
-  perform public.advance_phase();
-  select * into v_room from public.rooms where id = v_room.id;
-  if v_room.status <> 'voting' or v_room.current_vote_index <> 1 then
-    raise exception 'TEST FAILED: sıradaki meme %', v_room.status;
-  end if;
-  v_log := v_log || 'reveal timing ok; ';
-
-  -- 6) Süre dolunca oy vermeyen otomatik "fena değil" (0) almış sayılır.
+  -- 5) Süre dolunca oy vermeyen otomatik "fena değil" (0) almış sayılır; son meme'den
+  -- sonra tur sonucuna geçilir.
   select p.user_id into v_owner from public.memes m join public.players p on p.id = m.player_id
   where m.id = v_room.current_vote_meme_id;
   select array_agg(u) into v_voters from unnest(v_users[1:3]) u where u <> v_owner;
@@ -131,21 +118,29 @@ begin
   perform public.cast_vote('begenildi');
   update public.rooms set phase_ends_at = now() - interval '3 seconds' where id = v_room.id;
   perform private.advance_due_rooms();
-  v_info := public.get_current_vote_meme() -> 'reveal';
-  if (v_info ->> 'points')::int <> 200 or (v_info -> 'distribution' ->> 'fena_degil')::int <> 1 then
-    raise exception 'TEST FAILED: otomatik oy %', v_info;
-  end if;
   select count(*) into v_count from public.votes v join public.players p on p.id = v.voter_player_id
   where p.user_id = v_voters[2] and v.is_auto and v.rating = 'fena_degil' and v.points = 0;
   if v_count <> 1 then raise exception 'TEST FAILED: otomatik oy kaydı'; end if;
+  if (select status from public.rooms where id = v_room.id) <> 'round_results' then
+    raise exception 'TEST FAILED: tur sonucu';
+  end if;
   v_log := v_log || 'auto vote ok; ';
 
-  -- 7) Son meme'den sonra ara sıralama; sonraki turu sadece host başlatır, geç katılan artık oynar.
-  update public.rooms set phase_ends_at = now() - interval '1 second' where id = v_room.id;
-  perform public.advance_phase();
-  if (select status from public.rooms where id = v_room.id) <> 'round_results' then
-    raise exception 'TEST FAILED: ara sıralama';
+  -- 6) Tur sonucu: meme'ler puana göre sıralı, sahip ve oy dağılımıyla.
+  v_info := v_info || jsonb_build_object('results', public.get_round_results());
+  if jsonb_array_length(v_info -> 'results') <> 2
+    or (v_info #>> '{results,0,points}')::int <> 250
+    or v_info #>> '{results,0,owner}' <> v_info ->> 'first_owner'
+    or (v_info #>> '{results,0,distribution,cok_begenildi}')::int <> 1
+    or (v_info #>> '{results,0,distribution,berbat}')::int <> 1
+    or (v_info #>> '{results,1,points}')::int <> 200
+    or v_info #>> '{results,1,owner}' <> (select username from public.players where user_id = v_owner)
+    or (v_info #>> '{results,1,distribution,fena_degil}')::int <> 1 then
+    raise exception 'TEST FAILED: tur sonucu %', v_info;
   end if;
+  v_log := v_log || 'round results ok; ';
+
+  -- 7) Sonraki turu sadece host başlatır; geç katılan artık oynar.
   perform set_config('request.jwt.claims', json_build_object('sub', v_users[2])::text, true);
   begin
     perform public.next_round();
@@ -160,7 +155,7 @@ begin
     or (select count(*) from public.memes where room_id = v_room.id and round = 2) <> 4 then
     raise exception 'TEST FAILED: 2. tur';
   end if;
-  v_log := v_log || 'round results + next round ok; ';
+  v_log := v_log || 'next round ok; ';
 
   -- 8) Son turun sonunda oyun biter.
   update public.rooms set current_round = total_rounds where id = v_room.id;
