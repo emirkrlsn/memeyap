@@ -1,5 +1,5 @@
 # MemeYap
-   
+
 Arkadaşlarınla oynanan, çok oyunculu ve web tabanlı bir meme yapma oyunu.
 
 **Oyna:** https://emirkrlsn.github.io/memeyap/
