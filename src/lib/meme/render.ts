@@ -1,3 +1,5 @@
+import { publicPath } from "../routes";
+
 /**
  * Meme çizimi. Düzenleme önizlemesi, oylama ekranı, PNG indirme ve GIF'in her karesi
  * aynı renderMemeFrame fonksiyonunu kullanır; böylece ekranda görülen ile indirilen aynıdır.
@@ -151,7 +153,7 @@ let fontLoading: Promise<void> | undefined;
 export function loadMemeFont(): Promise<void> {
   fontLoading ??= new FontFace(
     MEME_FONT_FAMILY,
-    "url(/fonts/Anton-Regular.ttf)",
+    `url(${publicPath("/fonts/Anton-Regular.ttf")})`,
   )
     .load()
     .then((font) => {

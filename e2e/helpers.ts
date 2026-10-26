@@ -10,7 +10,7 @@ export async function openPlayer(browser: Browser, mobile = false) {
 
 /** Oda oluşturur (kod verilmezse) ya da verilen koda katılır; oda kodunu döner. */
 export async function enter(page: Page, username: string, code?: string) {
-  await page.goto("/");
+  await page.goto("./");
   await page.getByLabel("Kullanıcı adın").fill(username);
   if (code) {
     await page.getByLabel("Oyun kodu").fill(code);
@@ -18,8 +18,13 @@ export async function enter(page: Page, username: string, code?: string) {
   } else {
     await page.getByRole("button", { name: "Oyun Oluştur" }).click();
   }
-  await page.waitForURL(/\/oda\/[A-Z0-9]{6}$/);
-  return page.url().split("/").pop()!;
+  return waitForRoom(page);
+}
+
+/** Oda sayfası açılana kadar bekler (/oda/?kod=ABC123) ve oda kodunu döner. */
+export async function waitForRoom(page: Page) {
+  await page.waitForURL(/\/oda\/\?kod=[A-Z0-9]{6}$/);
+  return new URL(page.url()).searchParams.get("kod")!;
 }
 
 /** Bağlı Supabase projesinde SQL çalıştırır (sadece testlerde süreyi ileri sarmak için). */

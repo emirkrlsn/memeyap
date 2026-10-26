@@ -9,7 +9,7 @@ test("ana sayfa açılır ve anonim oturum yenilemede korunur", async ({
     if (match) userIds.push(match[1]);
   });
 
-  await page.goto("/");
+  await page.goto("./");
   await expect(page.getByRole("heading", { name: "MemeYap" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Oyun Oluştur" }),
@@ -25,7 +25,7 @@ test("ana sayfa açılır ve anonim oturum yenilemede korunur", async ({
 test("geçersiz kullanıcı adı ve oda kodu Türkçe hata verir", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("./");
   await page.getByLabel("Kullanıcı adın").fill("abc");
   await page.getByRole("button", { name: "Oyun Oluştur" }).click();
   await expect(

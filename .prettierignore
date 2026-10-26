@@ -12,3 +12,4 @@ src/types/database.ts
 playwright-report/
 test-results/
 coverage/
+out/

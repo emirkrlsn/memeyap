@@ -15,6 +15,7 @@ import {
 import { errorMessage, strings } from "@/lib/strings";
 import { ensureAnonymousSession } from "@/lib/supabase/auth";
 import { getSupabaseClient } from "@/lib/supabase/client";
+import { roomPath } from "@/lib/routes";
 import { useHydrated } from "@/lib/use-hydrated";
 
 const USERNAME_STORAGE_KEY = "memeyap:username";
@@ -90,7 +91,7 @@ export function HomeScreen({ initialCode = "", onJoined }: Props) {
         // Kaydedilemezse bir dahaki sefere tekrar yazar.
       }
       if (onJoined) onJoined();
-      else router.push(`/oda/${data}`);
+      else router.push(roomPath(data));
     } catch (error) {
       const message = errorMessage(error);
       const usernameErrors: string[] = [
@@ -118,7 +119,7 @@ export function HomeScreen({ initialCode = "", onJoined }: Props) {
           </p>
           <Button
             variant="success"
-            onClick={() => router.push(`/oda/${currentRoomCode}`)}
+            onClick={() => router.push(roomPath(currentRoomCode))}
           >
             {strings.home.backToRoom}
           </Button>

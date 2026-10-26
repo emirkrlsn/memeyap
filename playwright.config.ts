@@ -1,7 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3000;
-const baseURL = `http://localhost:${PORT}`;
+/**
+ * Varsayılan: geliştirme sunucusu. BASE_URL verilirse o adres test edilir (ör. yerel yayın
+ * önizlemesi http://localhost:4173/memeyap/ ya da canlı GitHub Pages sitesi).
+ * Testler "./" ile gezinir; adres bir alt dizinde olsa da çalışır.
+ */
+const baseURL = process.env.BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -30,10 +34,12 @@ export default defineConfig({
       testMatch: /mobile-download/,
     },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: process.env.BASE_URL
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });

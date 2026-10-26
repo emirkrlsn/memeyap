@@ -1,5 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
+import { waitForRoom } from "./helpers";
+
 // Her oyuncu ayrı bir tarayıcı bağlamı (ayrı anonim kullanıcı) kullanır.
 // Supabase IP başına saatte 30 anonim girişe izin verdiği için bu test sadece masaüstünde koşar.
 test.skip(({ isMobile }) => isMobile, "Çok oyunculu test sadece masaüstünde");
@@ -10,15 +12,14 @@ async function openPlayer(browser: Browser) {
 }
 
 async function fillUsername(page: Page, username: string) {
-  await page.goto("/");
+  await page.goto("./");
   await page.getByLabel("Kullanıcı adın").fill(username);
 }
 
 async function createRoom(page: Page, username: string) {
   await fillUsername(page, username);
   await page.getByRole("button", { name: "Oyun Oluştur" }).click();
-  await page.waitForURL(/\/oda\/[A-Z0-9]{6}$/);
-  return page.url().split("/").pop()!;
+  return waitForRoom(page);
 }
 
 async function tryJoin(page: Page, code: string, username: string) {
@@ -29,7 +30,7 @@ async function tryJoin(page: Page, code: string, username: string) {
 
 async function joinRoom(page: Page, code: string, username: string) {
   await tryJoin(page, code, username);
-  await page.waitForURL(`**/oda/${code}`);
+  await page.waitForURL(`**/oda/?kod=${code}`);
 }
 
 const players = (page: Page) => page.getByTestId("player");
@@ -65,7 +66,7 @@ test("oda kurma, katılma, host devri, başlatma ve geç katılım", async ({
   ).toBeVisible();
   await c.page.getByLabel("Kullanıcı adın").fill("Üçüncü");
   await c.page.getByRole("button", { name: "Oyuna Katıl" }).click();
-  await c.page.waitForURL(`**/oda/${code}`);
+  await c.page.waitForURL(`**/oda/?kod=${code}`);
 
   for (const { page } of [a, b, c]) {
     await expect(players(page)).toHaveCount(3);

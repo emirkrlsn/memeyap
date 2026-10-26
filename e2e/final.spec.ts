@@ -97,7 +97,7 @@ test("3 turluk tam oyun: final sıralaması (eşitlik 1,1,2), tekrar oyna, silme
   // Son oyuncu da ayrılınca oda ve tüm verisi silinir.
   for (const page of pages) {
     await page.getByRole("button", { name: "Odadan ayrıl" }).click();
-    await page.waitForURL((url) => url.pathname === "/");
+    await page.waitForURL((url) => !url.pathname.includes("/oda"));
   }
   const [{ rooms }] = await runSql(
     `select count(*)::int as rooms from public.rooms where code = '${code}'`,
