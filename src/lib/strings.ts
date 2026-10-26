@@ -95,6 +95,14 @@ export const strings = {
     finalStandings: "Sıralama",
     points: (points: string) => `${points} puan`,
   },
+  download: {
+    button: (extension: string) => `⬇ İndir (${extension.toUpperCase()})`,
+    preparing: (percent: number) => `Hazırlanıyor… %${percent}`,
+    all: "⬇ Tümünü indir (ZIP)",
+    allProgress: (done: number, total: number) =>
+      `Hazırlanıyor… ${done}/${total}`,
+    failed: "İndirme başarısız oldu. Tekrar dene.",
+  },
   devTools: {
     title: "Kutu tanımlama yardımcısı",
     intro:

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { BoxEditor } from "@/components/meme/BoxEditor";
+import { DownloadButton } from "@/components/meme/DownloadButtons";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
@@ -112,6 +113,11 @@ export function VotingScreen({ room, me }: Props) {
         width={meme.template.width}
         height={meme.template.height}
         boxes={toBoxes(meme.boxes)}
+      />
+      <DownloadButton
+        meme={{ template: meme.template, boxes: toBoxes(meme.boxes) }}
+        round={room.current_round}
+        label={`meme${meme.index}`}
       />
 
       {meme.is_mine || spectating ? (

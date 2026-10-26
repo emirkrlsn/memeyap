@@ -287,6 +287,7 @@ export type Database = {
       }
       create_room: { Args: { p_username: string }; Returns: string }
       get_current_vote_meme: { Args: never; Returns: Json }
+      get_game_memes: { Args: never; Returns: Json }
       get_round_results: { Args: never; Returns: Json }
       heartbeat: { Args: never; Returns: undefined }
       join_room: {

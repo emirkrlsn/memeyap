@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BoxEditor } from "@/components/meme/BoxEditor";
+import { DownloadButton } from "@/components/meme/DownloadButtons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
@@ -159,6 +160,11 @@ export function MemeEditor({ room, players, me }: Props) {
           {strings.game.editorHint}
         </p>
       )}
+      <DownloadButton
+        meme={{ template, boxes }}
+        round={room.current_round}
+        label={me.username}
+      />
 
       <Card className="flex flex-col gap-3">
         {boxes.map((box, index) => (

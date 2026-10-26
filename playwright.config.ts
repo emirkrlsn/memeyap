@@ -16,8 +16,19 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "desktop",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: /mobile-download/,
+    },
+    // Android Chrome görünümü
     { name: "mobile", use: { ...devices["Pixel 7"] } },
+    // iPhone Safari motoru (WebKit): sadece telefonda indirme testi
+    {
+      name: "iphone",
+      use: { ...devices["iPhone 14"] },
+      testMatch: /mobile-download/,
+    },
   ],
   webServer: {
     command: "npm run dev",

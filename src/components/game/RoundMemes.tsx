@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { BoxEditor } from "@/components/meme/BoxEditor";
+import { DownloadButton } from "@/components/meme/DownloadButtons";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { templateUrl, toBoxes, type Template } from "@/lib/meme/templates";
@@ -126,6 +127,11 @@ export function RoundMemes({ room }: { room: Room }) {
                   </li>
                 ))}
               </ul>
+              <DownloadButton
+                meme={{ template: meme.template, boxes: toBoxes(meme.boxes) }}
+                round={room.current_round}
+                label={meme.owner ?? strings.results.unknownOwner}
+              />
             </Card>
           </li>
         ))}

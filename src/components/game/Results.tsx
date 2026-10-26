@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { DownloadAllButton } from "@/components/meme/DownloadButtons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
@@ -45,6 +46,8 @@ export function Results({ room, players, me }: Props) {
           </p>
         )}
       </div>
+
+      {isFinal && <DownloadAllButton room={room} />}
 
       <RoundMemes room={room} />
 

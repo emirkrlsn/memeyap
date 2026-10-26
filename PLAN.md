@@ -186,6 +186,12 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
   - Oyun sırasında bağlı oyuncu 3'ün altına düşerse oyun biter (`rooms.ended_early`).
   - `memes.points` meme'in aldığı puanı, `memes.shown_at` oylamada ekrana geldiği anı tutar (Faz 4'te indirme izni için).
   - Eşit puanlılar şimdilik kullanıcı adına göre sıralanır; sıra numarası (Açık karar 6) Faz 5'te.
+- **Faz 4'te uygulanan kararlar:**
+  - İndirme yerleri: editörde kendi meme'in, oylamada ekrandaki meme (sahip gizli olduğundan dosya adı `tur{N}_meme{sıra}`), tur sonucunda her meme, oyun sonunda "Tümünü indir" (ZIP).
+  - GIF: yazı katmanı ana iş parçacığında renderMemeFrame ile bir kez çizilir (yazı her karede aynı), Web Worker kareleri çözüp bu katmanı her kareye işler ve kare süreleri + döngü sayısı korunarak yeniden kodlar. İlerleme yüzdesi gösterilir.
+  - Telefonlarda önce paylaşım menüsü (Web Share API; iOS'ta "Resmi Kaydet") denenir, olmazsa normal indirme.
+  - ZIP sadece oyun bitince (`final`) alınabilir ve sadece oylamada ekrana gelmiş meme'leri içerir (`get_game_memes`). Dosya adlarında Türkçe harfler sadeleşir; aynı ada düşenler `_2` ile ayrılır.
+  - Ana ekrandaki form, sayfa tarayıcıda hazır olana kadar pasif: yavaş telefonlarda erken yazılan kullanıcı adı silinmesin diye.
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

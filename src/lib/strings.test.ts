@@ -24,7 +24,7 @@ describe("strings", () => {
     for (const [path, value] of values) {
       const text =
         typeof value === "function"
-          ? (value as (...args: unknown[]) => unknown)(1, 2)
+          ? (value as (...args: unknown[]) => unknown)("1", "2")
           : value;
       expect(typeof text, path).toBe("string");
       expect((text as string).trim(), path).not.toBe("");

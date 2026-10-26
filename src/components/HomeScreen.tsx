@@ -15,6 +15,7 @@ import {
 import { errorMessage, strings } from "@/lib/strings";
 import { ensureAnonymousSession } from "@/lib/supabase/auth";
 import { getSupabaseClient } from "@/lib/supabase/client";
+import { useHydrated } from "@/lib/use-hydrated";
 
 const USERNAME_STORAGE_KEY = "memeyap:username";
 
@@ -35,6 +36,7 @@ type Props = {
 
 export function HomeScreen({ initialCode = "", onJoined }: Props) {
   const router = useRouter();
+  const hydrated = useHydrated();
   const [username, setUsername] = useState("");
   const [code, setCode] = useState(initialCode);
   const [currentRoomCode, setCurrentRoomCode] = useState<string | null>(null);
@@ -132,6 +134,7 @@ export function HomeScreen({ initialCode = "", onJoined }: Props) {
           value={username}
           maxLength={USERNAME_MAX_LENGTH * 2}
           autoComplete="nickname"
+          disabled={!hydrated}
           onChange={(event) => setUsername(event.target.value)}
         />
 
@@ -140,7 +143,7 @@ export function HomeScreen({ initialCode = "", onJoined }: Props) {
             <Button
               size="lg"
               fullWidth
-              disabled={pending !== null}
+              disabled={pending !== null || !hydrated}
               onClick={() => void submit("create")}
             >
               {pending === "create"
@@ -165,6 +168,7 @@ export function HomeScreen({ initialCode = "", onJoined }: Props) {
             autoComplete="off"
             spellCheck={false}
             className="text-center font-meme text-2xl tracking-[0.3em] uppercase"
+            disabled={!hydrated}
             onChange={(event) => setCode(normalizeRoomCode(event.target.value))}
           />
           <Button
@@ -172,7 +176,7 @@ export function HomeScreen({ initialCode = "", onJoined }: Props) {
             variant="secondary"
             size="lg"
             fullWidth
-            disabled={pending !== null}
+            disabled={pending !== null || !hydrated}
           >
             {pending === "join" ? strings.common.loading : strings.home.join}
           </Button>

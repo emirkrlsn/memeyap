@@ -23,7 +23,7 @@ export async function enter(page: Page, username: string, code?: string) {
 }
 
 /** Bağlı Supabase projesinde SQL çalıştırır (sadece testlerde süreyi ileri sarmak için). */
-async function runSql(query: string) {
+export async function runSql(query: string) {
   const token = process.env.SUPABASE_ACCESS_TOKEN;
   if (!token) throw new Error("SUPABASE_ACCESS_TOKEN tanımlı değil.");
   const ref = readFileSync("supabase/.temp/project-ref", "utf8").trim();

@@ -19,7 +19,7 @@ Arkadaşlarınla oynanan, çok oyunculu ve web tabanlı bir meme yapma oyunu. Ge
 ```bash
 npm install
 cp .env.example .env.local   # sonra değerleri doldur
-npx playwright install chromium
+npx playwright install chromium webkit   # webkit: iPhone Safari testi
 ```
 
 `.env.local` içindeki değerler:
@@ -101,7 +101,7 @@ src/
   components/          Ekranlar (HomeScreen, room/*, game/MemeEditor, meme/BoxEditor …)
   components/ui/       Temel bileşenler: Button, Input, Card, Modal, Toast, Segmented
   lib/game-rules.ts    Oyun kuralları (sunucudaki kontrollerle aynı)
-  lib/meme/            Ortak meme çizimi (renderMemeFrame) ve şablon yardımcıları
+  lib/meme/            Ortak meme çizimi (renderMemeFrame), şablonlar, PNG/GIF/ZIP indirme (GIF: Web Worker)
   lib/strings.ts       Kullanıcıya görünen tüm Türkçe metinler ve hata mesajları
   lib/supabase/        Supabase istemcisi, anonim oturum ve canlı oda durumu (use-room)
   types/database.ts    Otomatik üretilen veritabanı tipleri (elle düzenleme)
