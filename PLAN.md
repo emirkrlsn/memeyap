@@ -122,9 +122,11 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
 5. Ara sıralama ekranından sonraki tura **host butona basınca mı**, yoksa **belirli bir süre sonra otomatik** mi geçilsin?
    **Karar:** **Host butona basınca.** (Son turdan sonra ara sıralama yerine doğrudan oyun sonuna geçilir.)
 6. Eşit puanda sıra numaralandırması: **1, 1, 3** mü yoksa **1, 1, 2** mi?
+   **Karar:** **1, 1, 2.**
 7. Oyun sırasında bağlı oyuncu sayısı **3'ün altına düşerse** ne olsun?
    **Karar:** Oyun **otomatik olarak biter** (oyun sonu ekranına geçilir). Bağlantı kopması 30 sn kuralıyla belirlenir.
 8. Veriler **ne zaman silinsin**? (Örn. son oyuncu odadan çıkınca veya oyun bittikten X saat sonra.) Not: oyun bittiği anda silinirse oyun sonu indirme çalışmaz.
+   **Karar:** **Son oyuncu odadan çıkınca.** "Odadan ayrıl" ile çıkılınca hemen; herkes sekmeyi kapatırsa (Karar 9'a göre 30 sn bağlantısız kalan ayrılmış sayılır) odada bağlı kimse kalmayınca. Oda, oyuncular, meme'ler ve oylar silinir; şablonlar kalır.
 9. Bir oyuncunun bağlantısı **kaç saniye** koparsa "ayrıldı" sayılsın?
    **Karar:** **30 saniye.**
 10. Kullanıcı adı **uzunluk sınırı** ve izin verilen karakterler neler olacak?
@@ -192,6 +194,11 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
   - Telefonlarda önce paylaşım menüsü (Web Share API; iOS'ta "Resmi Kaydet") denenir, olmazsa normal indirme.
   - ZIP sadece oyun bitince (`final`) alınabilir ve sadece oylamada ekrana gelmiş meme'leri içerir (`get_game_memes`). Dosya adlarında Türkçe harfler sadeleşir; aynı ada düşenler `_2` ile ayrılır.
   - Ana ekrandaki form, sayfa tarayıcıda hazır olana kadar pasif: yavaş telefonlarda erken yazılan kullanıcı adı silinmesin diye.
+- **Faz 5'te uygulanan kararlar:**
+  - Sıralama: eşit puanlılar aynı sırayı paylaşır, sonraki sıra atlanmaz (1, 1, 2); aynı sıradakiler kullanıcı adına göre dizilir. Hem ara sıralamada hem finalde.
+  - Final sayfası: final sıralaması → "Tümünü indir" → (host) "Aynı odayla tekrar oyna" → son turun meme'leri.
+  - "Aynı odayla tekrar oyna" sadece host'ta; herkes aynı kodla lobiye döner, puanlar sıfırlanır, önceki oyunun meme'leri ve oyları silinir (ZIP'i önce indirmek gerekir).
+  - Silme: son oyuncu "Odadan ayrıl" deyince oda hemen silinir; herkes sekmeyi kapatırsa odada 30 sn bağlı kimse kalmayınca pg_cron işi (15 sn'de bir) siler. Oyuncular, meme'ler, oylar silinir; şablonlar kalır. (Anonim Supabase kullanıcı hesapları silinmez; oyun verisi içermezler.)
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

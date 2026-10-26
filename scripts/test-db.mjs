@@ -34,13 +34,12 @@ function report(passed, name, message) {
 for (const file of readdirSync("supabase/tests").filter((f) =>
   f.endsWith(".sql"),
 )) {
-  const message = (
-    await query(readFileSync(`supabase/tests/${file}`, "utf8"))
-  ).match(/TESTS? (PASSED|FAILED)[^\\]*/)?.[0];
+  const response = await query(readFileSync(`supabase/tests/${file}`, "utf8"));
+  const message = response.match(/TESTS? (PASSED|FAILED)[^\\]*/)?.[0];
   report(
     message?.startsWith("TESTS PASSED") ?? false,
     file,
-    message ?? "beklenmeyen yanıt",
+    message ?? `beklenmeyen yanıt: ${response.slice(0, 300)}`,
   );
 }
 

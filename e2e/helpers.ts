@@ -39,6 +39,7 @@ export async function runSql(query: string) {
     },
   );
   if (!response.ok) throw new Error(await response.text());
+  return (await response.json()) as Record<string, unknown>[];
 }
 
 /** Odanın mevcut faz süresini bitmiş sayar; istemciler ve pg_cron fazı ilerletir. */

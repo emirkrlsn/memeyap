@@ -63,6 +63,8 @@ npm run db:types                    # TypeScript tiplerini güncelle
 npm run test:db                     # sunucu kurallarını test et
 ```
 
+Oda verileri (oyuncular, meme'ler, oylar) son oyuncu odadan çıkınca silinir; bağlı kimse kalmayan odaları 15 sn'de bir çalışan bir pg_cron işi temizler. Şablonlar silinmez.
+
 Oyun durumunu değiştiren her işlem bir Postgres fonksiyonudur (RPC, `SECURITY DEFINER`); tablolara istemciden sadece okuma yapılır ve RLS ile kişi yalnızca kendi odasını görür. Sunucu hataları sabit kodlar döner (ör. `ROOM_FULL`); Türkçe karşılıkları `src/lib/strings.ts` içindeki `errors` bölümündedir.
 
 > Supabase, aynı IP'den saatte en fazla 30 yeni anonim girişe izin verir. Her Playwright tarayıcı bağlamı yeni bir anonim kullanıcıdır; uçtan uca testleri art arda çok sık çalıştırırsan bu sınıra takılabilirsin.

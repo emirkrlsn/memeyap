@@ -92,7 +92,10 @@ export const strings = {
     gameOver: "Oyun bitti!",
     endedEarly:
       "Bağlı oyuncu sayısı 3'ün altına düştüğü için oyun erken bitti.",
-    finalStandings: "Sıralama",
+    finalStandings: "Final sıralaması",
+    rank: (rank: number) => `${rank}. sıra`,
+    playAgain: "🔁 Aynı odayla tekrar oyna",
+    waitingForRestart: "Yönetici aynı odayla yeni bir oyun başlatabilir.",
     points: (points: string) => `${points} puan`,
   },
   download: {
@@ -136,6 +139,7 @@ export const strings = {
     NO_REROLLS_LEFT: "Pas hakkın kalmadı.",
     NO_TEMPLATES: "Hiç meme şablonu yüklenmemiş.",
     OWN_MEME: "Kendi meme'ine oy veremezsin.",
+    GAME_NOT_OVER: "Oyun henüz bitmedi.",
     UNKNOWN: "Bir şeyler ters gitti. Tekrar dene.",
   },
 } as const;

@@ -297,6 +297,7 @@ export type Database = {
       leave_room: { Args: never; Returns: undefined }
       next_round: { Args: never; Returns: undefined }
       reroll_template: { Args: never; Returns: string }
+      restart_room: { Args: never; Returns: undefined }
       save_meme: { Args: { p_boxes: Json }; Returns: undefined }
       server_now: { Args: never; Returns: string }
       set_ready: { Args: { p_ready: boolean }; Returns: undefined }

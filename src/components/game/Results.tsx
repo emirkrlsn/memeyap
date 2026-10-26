@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
-import { formatPoints, sortByScore } from "@/lib/scoreboard";
+import { formatPoints, rankByScore } from "@/lib/scoreboard";
 import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Player, Room } from "@/lib/supabase/use-room";
@@ -16,21 +16,88 @@ import { RoundMemes } from "./RoundMemes";
 
 type Props = { room: Room; players: Player[]; me: Player };
 
-/** Tur sonucu (round_results) ve oyun sonu (final): turun meme'leri puana göre sıralı, ardından genel sıralama. */
+/**
+ * Tur sonucu (round_results): turun meme'leri puana göre sıralı, altında ara sıralama.
+ * Oyun sonu (final): final sıralaması, tümünü indir, son turun meme'leri, tekrar oyna.
+ */
 export function Results({ room, players, me }: Props) {
   const { showToast } = useToast();
-  const [starting, setStarting] = useState(false);
+  const [busy, setBusy] = useState(false);
   const isFinal = room.status === "final";
   const isHost = room.host_player_id === me.id;
 
-  async function nextRound() {
-    setStarting(true);
-    const { error } = await getSupabaseClient().rpc("next_round");
+  async function hostAction() {
+    setBusy(true);
+    const { error } = await getSupabaseClient().rpc(
+      isFinal ? "restart_room" : "next_round",
+    );
     if (error) {
       showToast(errorMessage(error), "error");
-      setStarting(false);
+      setBusy(false);
     }
   }
+
+  const scoreboard = (
+    <Card className="flex flex-col gap-3">
+      <h3 className="text-xl font-black">
+        {isFinal ? strings.results.finalStandings : strings.results.standings}
+      </h3>
+      <ol className="flex flex-col gap-2" data-testid="scoreboard">
+        {rankByScore(players).map(({ player, rank }) => (
+          <li
+            key={player.id}
+            data-testid="score-row"
+            className={cn(
+              "flex items-center gap-3 rounded-2xl border-[3px] px-4 py-2.5 font-extrabold",
+              player.id === me.id
+                ? "border-grape bg-grape/10"
+                : "border-ink/10 bg-white",
+            )}
+          >
+            <span
+              data-testid="rank"
+              aria-label={strings.results.rank(rank)}
+              className={cn(
+                "grid size-8 shrink-0 place-items-center rounded-full text-sm font-black",
+                rank === 1 ? "bg-sun text-ink" : "bg-ink/10 text-ink",
+              )}
+            >
+              {rank}
+            </span>
+            <span className="min-w-0 flex-1 truncate">
+              {player.username}
+              {isFinal && rank === 1 && " 👑"}
+            </span>
+            <span className="tabular-nums">
+              {strings.results.points(formatPoints(player.score))}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+
+  const action = isHost ? (
+    <Button
+      size="lg"
+      variant="success"
+      fullWidth
+      disabled={busy}
+      onClick={hostAction}
+    >
+      {busy
+        ? strings.common.loading
+        : isFinal
+          ? strings.results.playAgain
+          : strings.results.nextRound}
+    </Button>
+  ) : (
+    <p className="animate-pulse text-center font-extrabold text-ink-soft">
+      {isFinal
+        ? strings.results.waitingForRestart
+        : strings.results.waitingForHost}
+    </p>
+  );
 
   return (
     <div className="flex w-full flex-col gap-5">
@@ -47,51 +114,20 @@ export function Results({ room, players, me }: Props) {
         )}
       </div>
 
-      {isFinal && <DownloadAllButton room={room} />}
-
-      <RoundMemes room={room} />
-
-      <Card className="flex flex-col gap-3">
-        <h3 className="text-xl font-black">
-          {isFinal ? strings.results.finalStandings : strings.results.standings}
-        </h3>
-        <ol className="flex flex-col gap-2" data-testid="scoreboard">
-          {sortByScore(players).map((player) => (
-            <li
-              key={player.id}
-              data-testid="score-row"
-              className={cn(
-                "flex items-center justify-between gap-3 rounded-2xl border-[3px] px-4 py-2.5 font-extrabold",
-                player.id === me.id
-                  ? "border-grape bg-grape/10"
-                  : "border-ink/10 bg-white",
-              )}
-            >
-              <span className="min-w-0 truncate">{player.username}</span>
-              <span className="tabular-nums">
-                {strings.results.points(formatPoints(player.score))}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </Card>
-
-      {!isFinal &&
-        (isHost ? (
-          <Button
-            size="lg"
-            variant="success"
-            fullWidth
-            disabled={starting}
-            onClick={nextRound}
-          >
-            {starting ? strings.common.loading : strings.results.nextRound}
-          </Button>
-        ) : (
-          <p className="animate-pulse text-center font-extrabold text-ink-soft">
-            {strings.results.waitingForHost}
-          </p>
-        ))}
+      {isFinal ? (
+        <>
+          {scoreboard}
+          <DownloadAllButton room={room} />
+          {action}
+          <RoundMemes room={room} />
+        </>
+      ) : (
+        <>
+          <RoundMemes room={room} />
+          {scoreboard}
+          {action}
+        </>
+      )}
     </div>
   );
 }

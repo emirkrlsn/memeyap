@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPoints, sortByScore } from "./scoreboard";
+import { formatPoints, rankByScore, sortByScore } from "./scoreboard";
 
 describe("sortByScore", () => {
   it("yüksek puandan düşüğe sıralar, eksi puanları en sona koyar", () => {
@@ -28,6 +28,45 @@ describe("sortByScore", () => {
       "İpek",
     ]);
     expect(players[0].username).toBe("Zeynep");
+  });
+});
+
+describe("rankByScore", () => {
+  const rows = (players: { username: string; score: number }[]) =>
+    rankByScore(players).map(
+      ({ player, rank }) => `${rank}. ${player.username}`,
+    );
+
+  it("eşit puanlılar aynı sırayı paylaşır ve sonraki sıra atlanmaz (1, 1, 2)", () => {
+    expect(
+      rows([
+        { username: "Ali", score: 1200 },
+        { username: "Can", score: 0 },
+        { username: "Ece", score: 1200 },
+      ]),
+    ).toEqual(["1. Ali", "1. Ece", "2. Can"]);
+  });
+
+  it("birden çok eşitlik grubunu ve eksi puanları doğru sıralar", () => {
+    expect(
+      rows([
+        { username: "A", score: 500 },
+        { username: "B", score: 200 },
+        { username: "C", score: 200 },
+        { username: "D", score: -250 },
+        { username: "E", score: -250 },
+        { username: "F", score: 500 },
+      ]),
+    ).toEqual(["1. A", "1. F", "2. B", "2. C", "3. D", "3. E"]);
+  });
+
+  it("herkes eşitse herkes birinci", () => {
+    expect(
+      rows([
+        { username: "X", score: 0 },
+        { username: "Y", score: 0 },
+      ]),
+    ).toEqual(["1. X", "1. Y"]);
   });
 });
 
