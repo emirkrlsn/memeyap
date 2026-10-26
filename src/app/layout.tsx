@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import localFont from "next/font/local";
+import { preconnect } from "react-dom";
 
 import { ToastProvider } from "@/components/ui/Toast";
 import { strings } from "@/lib/strings";
@@ -30,6 +31,10 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // Supabase bağlantısını erken aç (ilk istek daha hızlı).
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) preconnect(supabaseUrl);
+
   return (
     <html
       lang="tr"

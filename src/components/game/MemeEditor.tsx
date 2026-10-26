@@ -19,6 +19,8 @@ import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { useSecondsLeft } from "@/lib/supabase/server-clock";
 import { useAdvanceWhenDue } from "@/lib/supabase/use-advance";
+import { playSound } from "@/lib/sound";
+import { useCountdownTicks } from "@/lib/use-countdown-ticks";
 import type { Player, Room } from "@/lib/supabase/use-room";
 
 const SAVE_DELAY_MS = 600;
@@ -93,6 +95,7 @@ export function MemeEditor({ room, players, me }: Props) {
     if (secondsLeft < 1.5 && pendingBoxes.current) void flush();
   }, [secondsLeft, flush]);
   useAdvanceWhenDue(secondsLeft, ADVANCE_AFTER_SECONDS);
+  useCountdownTicks(timeUp ? null : secondsLeft);
 
   async function run(action: () => PromiseLike<{ error: unknown }>) {
     setBusy(true);
@@ -111,8 +114,12 @@ export function MemeEditor({ room, players, me }: Props) {
     }
   }
 
-  const toggleReady = () =>
-    run(() => getSupabaseClient().rpc("set_ready", { p_ready: !me.is_ready }));
+  const toggleReady = () => {
+    playSound("pop");
+    return run(() =>
+      getSupabaseClient().rpc("set_ready", { p_ready: !me.is_ready }),
+    );
+  };
 
   if (!template) {
     return (

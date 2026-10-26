@@ -7,12 +7,12 @@ export const RATING_STYLE: Record<
 > = {
   cok_begenildi: {
     emoji: "🤣",
-    color: "bg-mint text-white",
+    color: "bg-mint text-ink",
     shadow: "shadow-[0_5px_0_0_var(--color-mint-dark)]",
   },
   begenildi: {
     emoji: "😄",
-    color: "bg-sky text-white",
+    color: "bg-sky text-ink",
     shadow: "shadow-[0_5px_0_0_var(--color-sky-dark)]",
   },
   fena_degil: {
@@ -22,7 +22,7 @@ export const RATING_STYLE: Record<
   },
   begenilmedi: {
     emoji: "😕",
-    color: "bg-coral text-white",
+    color: "bg-coral text-ink",
     shadow: "shadow-[0_5px_0_0_var(--color-coral-dark)]",
   },
   berbat: {

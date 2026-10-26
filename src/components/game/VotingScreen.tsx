@@ -14,6 +14,8 @@ import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { useSecondsLeft } from "@/lib/supabase/server-clock";
 import { useAdvanceWhenDue } from "@/lib/supabase/use-advance";
+import { playSound } from "@/lib/sound";
+import { useCountdownTicks } from "@/lib/use-countdown-ticks";
 import type { Player, Room } from "@/lib/supabase/use-room";
 import type { Json } from "@/types/database";
 
@@ -48,6 +50,7 @@ export function VotingScreen({ room, me }: Props) {
 
   const secondsLeft = useSecondsLeft(room.phase_ends_at);
   useAdvanceWhenDue(secondsLeft, GRACE_SECONDS);
+  useCountdownTicks(secondsLeft);
 
   useEffect(() => {
     let active = true;
@@ -69,6 +72,7 @@ export function VotingScreen({ room, me }: Props) {
   }, [room.phase_ends_at]);
 
   async function vote(rating: Rating) {
+    playSound("pop");
     const previous = myRating;
     setMyRating(rating);
     const { error } = await getSupabaseClient().rpc("cast_vote", {

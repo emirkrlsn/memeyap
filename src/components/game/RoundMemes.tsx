@@ -10,6 +10,7 @@ import { templateUrl, toBoxes, type Template } from "@/lib/meme/templates";
 import { RATINGS, type Rating } from "@/lib/ratings";
 import { formatPoints } from "@/lib/scoreboard";
 import { strings } from "@/lib/strings";
+import { playSound } from "@/lib/sound";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Room } from "@/lib/supabase/use-room";
 import type { Json } from "@/types/database";
@@ -26,19 +27,39 @@ type RoundMeme = {
   distribution: Record<Rating, number>;
 };
 
+/**
+ * Meme'ler sonuncudan birinciye doğru sırayla belirir (birinci en son). Toplam süre,
+ * meme sayısından bağımsız olarak en fazla ~4 sn.
+ */
+function revealDelay(index: number, count: number): number {
+  const step = Math.min(600, 4000 / Math.max(1, count - 1));
+  return Math.round((count - 1 - index) * step);
+}
+
 /** Turda oylanan tüm meme'ler tek sayfada, puana göre sıralı; sahibi ve oy dağılımıyla. */
 export function RoundMemes({ room }: { room: Room }) {
   const [memes, setMemes] = useState<RoundMeme[] | null>(null);
 
   useEffect(() => {
     let active = true;
+    let winnerTimer: number | undefined;
     getSupabaseClient()
       .rpc("get_round_results")
       .then(({ data }) => {
-        if (active) setMemes((data as unknown as RoundMeme[] | null) ?? []);
+        if (!active) return;
+        const loaded = (data as unknown as RoundMeme[] | null) ?? [];
+        setMemes(loaded);
+        // Birinci en son belirir; ara sıralamada o an zafer sesi (oyun sonunda konfeti var).
+        if (room.status === "round_results" && loaded.length > 0) {
+          winnerTimer = window.setTimeout(
+            () => playSound("win"),
+            revealDelay(0, loaded.length),
+          );
+        }
       });
     return () => {
       active = false;
+      window.clearTimeout(winnerTimer);
     };
   }, [room.current_round, room.status]);
 
@@ -63,7 +84,12 @@ export function RoundMemes({ room }: { room: Room }) {
       <ol className="flex flex-col gap-4" data-testid="round-memes">
         {memes.map((meme, index) => (
           <li key={meme.meme_id} data-testid="round-meme">
-            <Card className="flex animate-pop-in flex-col gap-3 p-4 sm:p-5">
+            <Card
+              className="flex animate-pop-in flex-col gap-3 p-4 [animation-fill-mode:both] sm:p-5"
+              style={{
+                animationDelay: `${revealDelay(index, memes.length)}ms`,
+              }}
+            >
               <div className="flex items-center gap-3">
                 <span
                   className={cn(

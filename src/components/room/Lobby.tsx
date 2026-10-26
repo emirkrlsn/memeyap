@@ -71,13 +71,13 @@ export function Lobby({ room, players, me }: Props) {
         <button
           type="button"
           onClick={copyCode}
-          aria-label={strings.room.copyCode}
+          aria-describedby="copy-code-hint"
           data-testid="room-code"
           className="rounded-2xl bg-sun px-6 py-2 font-meme text-5xl tracking-[0.2em] text-ink transition-transform hover:scale-105 active:scale-95"
         >
           {room.code}
         </button>
-        <p className="text-xs font-bold text-ink-soft">
+        <p id="copy-code-hint" className="text-xs font-bold text-ink-soft">
           {strings.room.copyCode}
         </p>
       </Card>

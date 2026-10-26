@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",
+    "canvas-confetti": "1.9.4",
     "gifenc": "1.0.3",
     "gifuct-js": "2.1.2",
     "jszip": "3.10.2",
@@ -28,10 +29,12 @@
     "react-rnd": "10.5.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
+    "@types/canvas-confetti": "1.9.0",
     "@types/node": "24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",

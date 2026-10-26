@@ -199,6 +199,11 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
   - Final sayfası: final sıralaması → "Tümünü indir" → (host) "Aynı odayla tekrar oyna" → son turun meme'leri.
   - "Aynı odayla tekrar oyna" sadece host'ta; herkes aynı kodla lobiye döner, puanlar sıfırlanır, önceki oyunun meme'leri ve oyları silinir (ZIP'i önce indirmek gerekir).
   - Silme: son oyuncu "Odadan ayrıl" deyince oda hemen silinir; herkes sekmeyi kapatırsa odada 30 sn bağlı kimse kalmayınca pg_cron işi (15 sn'de bir) siler. Oyuncular, meme'ler, oylar silinir; şablonlar kalır. (Anonim Supabase kullanıcı hesapları silinmez; oyun verisi içermezler.)
+- **Faz 6'da uygulanan kararlar:**
+  - Yayın Vercel yerine **GitHub Pages** (kullanıcı kararı): `output: "export"` ile statik site, `/memeyap` alt dizini, oda adresi `/oda/?kod=…`, GitHub Actions ile otomatik yayın. Cache Components kapatıldı (statik dışa aktarmayla uyumsuz). Kutu yardımcısı `*.dev.tsx` olarak sadece geliştirmede.
+  - Eğlenceli dokunuşlar (hepsi onaylandı): oyun sonu konfeti + zafer sesi; son 10 sn tık sesi ve titreşim; oy ve "Hazırım"da "pop"; ses aç/kapa düğmesi (titreşimi de kapatır, varsayılan açık); lobide "X katıldı!" bildirimi; tur sonucunda meme'ler sonuncudan birinciye sırayla belirir. Sesler dosyasız (Web Audio). "Hareketi azalt" tercihinde animasyon/konfeti kapanır.
+  - Erişilebilirlik: canlı renkli zeminlerde koyu yazı (WCAG AA kontrast), oda kodu butonunun erişilebilir adı görünen kodla aynı; axe testi ana sayfa, lobi, editör, oylama ve tur sonucunda temiz.
+  - Uç durum düzeltmesi: oylamada ekrandaki meme'in sahibi (ör. host) ayrılınca `leave_room` hata veriyordu; düzeltildi, oylama sıradaki meme'le sürer.
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

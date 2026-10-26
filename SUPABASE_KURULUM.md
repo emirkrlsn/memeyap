@@ -108,7 +108,9 @@ Bundan sonra panelde **Table Editor** altında tabloları görebilirsin.
 
 ---
 
-## 9. Vercel ile yayın
+## 9. Vercel ile yayın (kullanılmıyor)
+
+> **Not:** Proje Vercel yerine **GitHub Pages**'te yayınlanıyor. Güncel adımlar için README'deki "Yayın (GitHub Pages)" bölümüne bak. Bu bölüm sadece kayıt amaçlı duruyor.
 
 1. https://vercel.com adresine **GitHub hesabınla** kaydol.
 2. **Add New → Project** → GitHub'daki `memeyap` deposunu seç → **Import**.

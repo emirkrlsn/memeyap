@@ -26,9 +26,9 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 const TOAST_DURATION_MS = 3500;
 
 const toneClasses: Record<ToastTone, string> = {
-  info: "bg-sky text-white",
-  success: "bg-mint text-white",
-  error: "bg-coral text-white",
+  info: "bg-sky text-ink",
+  success: "bg-mint text-ink",
+  error: "bg-coral text-ink",
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {

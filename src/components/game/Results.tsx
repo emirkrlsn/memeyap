@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { DownloadAllButton } from "@/components/meme/DownloadButtons";
 import { Button } from "@/components/ui/Button";
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 import { formatPoints, rankByScore } from "@/lib/scoreboard";
+import { playSound } from "@/lib/sound";
 import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Player, Room } from "@/lib/supabase/use-room";
@@ -25,6 +26,30 @@ export function Results({ room, players, me }: Props) {
   const [busy, setBusy] = useState(false);
   const isFinal = room.status === "final";
   const isHost = room.host_player_id === me.id;
+
+  // Oyun sonu kutlaması: konfeti ve zafer sesi (bir kez).
+  useEffect(() => {
+    if (!isFinal) return;
+    let cancelled = false;
+    void import("canvas-confetti").then(({ default: confetti }) => {
+      if (cancelled) return;
+      playSound("win");
+      const burst = (x: number) =>
+        confetti({
+          particleCount: 120,
+          spread: 75,
+          origin: { x, y: 0.35 },
+          colors: ["#7b3fe4", "#ffc83d", "#ff5d73", "#19c3a6", "#3d9bff"],
+          disableForReducedMotion: true,
+        });
+      burst(0.25);
+      burst(0.75);
+      window.setTimeout(() => !cancelled && burst(0.5), 400);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isFinal]);
 
   async function hostAction() {
     setBusy(true);

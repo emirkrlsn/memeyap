@@ -44,6 +44,7 @@ export const strings = {
     leave: "Odadan ayrıl",
     newHost: (username: string) => `${username} artık oyunun yöneticisi.`,
     youAreHost: "Artık oyunun yöneticisi sensin!",
+    joined: (username: string) => `${username} katıldı!`,
     spectating: "Oyun devam ediyor",
     spectatingDetail: (round: number) =>
       `${round}. turdan itibaren sen de oynayacaksın. O zamana kadar izleyebilirsin.`,
@@ -97,6 +98,10 @@ export const strings = {
     playAgain: "🔁 Aynı odayla tekrar oyna",
     waitingForRestart: "Yönetici aynı odayla yeni bir oyun başlatabilir.",
     points: (points: string) => `${points} puan`,
+  },
+  sound: {
+    turnOff: "Sesi kapat",
+    turnOn: "Sesi aç",
   },
   download: {
     button: (extension: string) => `⬇ İndir (${extension.toUpperCase()})`,

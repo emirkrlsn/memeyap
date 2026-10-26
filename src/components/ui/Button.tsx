@@ -8,8 +8,8 @@ type Size = "md" | "lg";
 const variantClasses: Record<Variant, string> = {
   primary: "bg-grape text-white shadow-[0_5px_0_0_var(--color-grape-dark)]",
   secondary: "bg-sun text-ink shadow-[0_5px_0_0_var(--color-sun-dark)]",
-  success: "bg-mint text-white shadow-[0_5px_0_0_var(--color-mint-dark)]",
-  danger: "bg-coral text-white shadow-[0_5px_0_0_var(--color-coral-dark)]",
+  success: "bg-mint text-ink shadow-[0_5px_0_0_var(--color-mint-dark)]",
+  danger: "bg-coral text-ink shadow-[0_5px_0_0_var(--color-coral-dark)]",
   ghost: "bg-white/70 text-ink shadow-[0_5px_0_0_rgb(36_22_58/0.15)]",
 };
 

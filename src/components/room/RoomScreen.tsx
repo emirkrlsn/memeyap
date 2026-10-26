@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { HomeScreen } from "@/components/HomeScreen";
+import { SoundToggle } from "@/components/SoundToggle";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
+import { playSound } from "@/lib/sound";
 import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import {
@@ -29,6 +31,7 @@ export function RoomScreen({ code }: { code: string }) {
   const { showToast } = useToast();
   const { state, reload } = useRoom(code);
   useHostChangeToast(state);
+  useJoinToast(state);
 
   async function leave() {
     const { error } = await getSupabaseClient().rpc("leave_room");
@@ -41,9 +44,12 @@ export function RoomScreen({ code }: { code: string }) {
       <header className="flex w-full items-center justify-between gap-3">
         <Logo small />
         {state.status === "ready" && (
-          <Button variant="ghost" onClick={leave}>
-            {strings.room.leave}
-          </Button>
+          <div className="flex items-center gap-2">
+            <SoundToggle />
+            <Button variant="ghost" onClick={leave}>
+              {strings.room.leave}
+            </Button>
+          </div>
         )}
       </header>
 
@@ -124,5 +130,25 @@ function useHostChangeToast(state: RoomState) {
       const host = state.players.find((player) => player.id === hostId);
       if (host) showToast(strings.room.newHost(host.username), "info");
     }
+  }, [state, showToast]);
+}
+
+/** Lobide yeni biri katılınca herkese bildirim ve ses (ilk yüklemede değil). */
+function useJoinToast(state: RoomState) {
+  const { showToast } = useToast();
+  const knownIds = useRef<Set<string> | null>(null);
+
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const ids = new Set(state.players.map((player) => player.id));
+    const known = knownIds.current;
+    knownIds.current = ids;
+    if (!known || state.room.status !== "lobby") return;
+    const joined = state.players.filter(
+      (player) => !known.has(player.id) && player.id !== state.me.id,
+    );
+    for (const player of joined)
+      showToast(strings.room.joined(player.username), "info");
+    if (joined.length > 0) playSound("join");
   }, [state, showToast]);
 }
