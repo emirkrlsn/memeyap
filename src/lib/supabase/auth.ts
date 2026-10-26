@@ -19,10 +19,14 @@ async function signIn(): Promise<User> {
   const supabase = getSupabaseClient();
 
   const { data: sessionData } = await supabase.auth.getSession();
-  if (sessionData.session?.user) return sessionData.session.user;
+  let user = sessionData.session?.user;
+  if (!user) {
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    if (!data.user) throw new Error("Anonim oturum açılamadı.");
+    user = data.user;
+  }
 
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error) throw error;
-  if (!data.user) throw new Error("Anonim oturum açılamadı.");
-  return data.user;
+  console.info("[MemeYap] Anonim kullanıcı kimliği:", user.id);
+  return user;
 }

@@ -46,6 +46,7 @@ npx supabase link --project-ref <PROJECT_ID>
 | `npm run format` | Prettier ile tüm dosyaları biçimlendir |
 | `npm test` | Vitest birim testleri |
 | `npm run test:e2e` | Playwright uçtan uca testleri (geliştirme sunucusunu kendisi başlatır) |
+| `npm run test:db` | `supabase/tests/*.sql` sunucu kuralı testlerini bağlı projede çalıştırır (değişiklikler geri alınır) |
 | `npm run db:push` | `supabase/migrations/` içindeki yeni migration'ları bağlı projeye uygula |
 | `npm run db:types` | Veritabanı şemasından `src/types/database.ts` tiplerini üret |
 
@@ -58,18 +59,26 @@ npx supabase migration new <ad>   # supabase/migrations/ altında yeni dosya olu
 # dosyaya SQL'i yaz
 npm run db:push                     # uzak veritabanına uygula
 npm run db:types                    # TypeScript tiplerini güncelle
+npm run test:db                     # sunucu kurallarını test et
 ```
+
+Oyun durumunu değiştiren her işlem bir Postgres fonksiyonudur (RPC, `SECURITY DEFINER`); tablolara istemciden sadece okuma yapılır ve RLS ile kişi yalnızca kendi odasını görür. Sunucu hataları sabit kodlar döner (ör. `ROOM_FULL`); Türkçe karşılıkları `src/lib/strings.ts` içindeki `errors` bölümündedir.
+
+> Supabase, aynı IP'den saatte en fazla 30 yeni anonim girişe izin verir. Her Playwright tarayıcı bağlamı yeni bir anonim kullanıcıdır; uçtan uca testleri art arda çok sık çalıştırırsan bu sınıra takılabilirsin.
 
 ## Proje yapısı
 
 ```
 src/
-  app/                 Sayfalar ve genel stiller (renk paleti: globals.css)
-  components/ui/       Temel bileşenler: Button, Input, Card, Modal, Toast
-  lib/strings.ts       Kullanıcıya görünen tüm Türkçe metinler
-  lib/supabase/        Supabase istemcisi ve anonim oturum yardımcısı
+  app/                 Sayfalar: ana ekran (/) ve oda (/oda/[kod]); renk paleti: globals.css
+  components/          Ekranlar (HomeScreen, room/Lobby, room/RoomScreen …)
+  components/ui/       Temel bileşenler: Button, Input, Card, Modal, Toast, Segmented
+  lib/game-rules.ts    Oyun kuralları (sunucudaki kontrollerle aynı)
+  lib/strings.ts       Kullanıcıya görünen tüm Türkçe metinler ve hata mesajları
+  lib/supabase/        Supabase istemcisi, anonim oturum ve canlı oda durumu (use-room)
   types/database.ts    Otomatik üretilen veritabanı tipleri (elle düzenleme)
 supabase/migrations/   Veritabanı migration'ları
+supabase/tests/        Sunucu kuralı testleri (npm run test:db)
 e2e/                   Playwright testleri
 public/fonts/          Anton fontu (SIL Open Font License)
 ```

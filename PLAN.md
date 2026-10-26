@@ -160,6 +160,11 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
 - `players`: id, room_id, user_id (auth.uid), username, score, joined_at, active_from_round, rerolls_left, is_ready, last_seen, is_connected — `unique(room_id, lower(username))`
 - `memes`: id, room_id, round, player_id, template_id, boxes (jsonb), is_submitted, updated_at
 - `votes`: id, meme_id, voter_player_id, rating (`cok_begenildi` | `begenildi` | `fena_degil` | `begenilmedi` | `berbat`), points, is_auto — `unique(meme_id, voter_player_id)`
+- **Faz 1'de uygulanan değişiklikler:**
+  - `players.user_id` benzersiz: bir kullanıcı aynı anda tek odada olur; yeni odaya girince eskisinden çıkar. Bu sayede RPC'ler `room_id` almaz, odayı `auth.uid()`'den bulur.
+  - `last_seen`, `players` yerine `private.player_heartbeats` tablosunda. Her heartbeat'te `players` güncellenseydi Realtime herkese gereksiz olay gönderirdi; `is_connected` sadece durum değişince güncellenir.
+  - Bağlantı takibi Presence yerine yalnızca heartbeat ile (10 sn'de bir); 30 sn sessiz kalan oyuncu kopmuş sayılır ve host devri bu sırada sunucuda yapılır. Ayrı bir `transfer_host_if_needed` RPC'si yerine bu iş `heartbeat()` ve `leave_room()` içinde.
+  - `rerolls_left` ve `is_ready` Faz 2'de eklenecek.
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

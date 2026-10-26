@@ -14,16 +14,127 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      players: {
+        Row: {
+          active_from_round: number
+          id: string
+          is_connected: boolean
+          joined_at: string
+          room_id: string
+          score: number
+          user_id: string
+          username: string
+        }
+        Insert: {
+          active_from_round?: number
+          id?: string
+          is_connected?: boolean
+          joined_at?: string
+          room_id: string
+          score?: number
+          user_id: string
+          username: string
+        }
+        Update: {
+          active_from_round?: number
+          id?: string
+          is_connected?: boolean
+          joined_at?: string
+          room_id?: string
+          score?: number
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          code: string
+          created_at: string
+          current_round: number
+          finished_at: string | null
+          host_player_id: string | null
+          id: string
+          phase_ends_at: string | null
+          reroll_limit: number
+          round_seconds: number
+          status: Database["public"]["Enums"]["room_status"]
+          total_rounds: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_round?: number
+          finished_at?: string | null
+          host_player_id?: string | null
+          id?: string
+          phase_ends_at?: string | null
+          reroll_limit?: number
+          round_seconds?: number
+          status?: Database["public"]["Enums"]["room_status"]
+          total_rounds?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_round?: number
+          finished_at?: string | null
+          host_player_id?: string | null
+          id?: string
+          phase_ends_at?: string | null
+          reroll_limit?: number
+          round_seconds?: number
+          status?: Database["public"]["Enums"]["room_status"]
+          total_rounds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_host_player_id_fkey"
+            columns: ["host_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_room: { Args: { p_username: string }; Returns: string }
+      heartbeat: { Args: never; Returns: undefined }
+      join_room: {
+        Args: { p_code: string; p_username: string }
+        Returns: string
+      }
+      leave_room: { Args: never; Returns: undefined }
+      start_game: { Args: never; Returns: undefined }
+      update_settings: {
+        Args: {
+          p_reroll_limit: number
+          p_round_seconds: number
+          p_total_rounds: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      room_status:
+        | "lobby"
+        | "creating"
+        | "voting"
+        | "reveal"
+        | "round_results"
+        | "final"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +261,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      room_status: [
+        "lobby",
+        "creating",
+        "voting",
+        "reveal",
+        "round_results",
+        "final",
+      ],
+    },
   },
 } as const

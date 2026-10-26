@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:db": "node scripts/test-db.mjs",
     "db:push": "supabase db push --linked",
     "db:types": "supabase gen types --linked --lang=typescript --schema public > src/types/database.ts"
   },
