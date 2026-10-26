@@ -6,6 +6,17 @@ Arkadaşlarınla oynanan, çok oyunculu ve web tabanlı bir meme yapma oyunu.
 
 Geliştirme planı için [PLAN.md](PLAN.md), Supabase hazırlıkları için [SUPABASE_KURULUM.md](SUPABASE_KURULUM.md) dosyasına bak. Yayın artık Vercel'de değil, GitHub Pages'te (aşağıda).
 
+## Ekip
+
+MemeYap dört arkadaşın ortak projesi:
+
+| | GitHub |
+|---|---|
+| Emir | [@emirkrlsn](https://github.com/emirkrlsn) |
+| Eren | [@Eren957](https://github.com/Eren957) |
+| Fatih Talha | [@FT174](https://github.com/FT174) |
+| Ahmet Sina Arslan | [@TuxiKhan](https://github.com/TuxiKhan) |
+
 ## Teknolojiler
 
 - Next.js (App Router) + TypeScript (strict) + Tailwind CSS
