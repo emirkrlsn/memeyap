@@ -16,7 +16,7 @@ MemeYap dört arkadaşın ortak projesi:
 | Eren | [@Eren957](https://github.com/Eren957) |
 | Fatih Talha | [@FT174](https://github.com/FT174) |
 | Ahmet Sina Arslan | [@TuxiKhan](https://github.com/TuxiKhan) |
-
+   
 ## Teknolojiler
 
 - Next.js (App Router) + TypeScript (strict) + Tailwind CSS
