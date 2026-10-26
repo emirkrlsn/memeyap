@@ -104,18 +104,19 @@ test("oda kurma, katılma, host devri, başlatma ve geç katılım", async ({
   ).toBeEnabled();
   await b.page.getByRole("button", { name: "Oyunu Başlat" }).click();
   for (const { page } of [b, c, d]) {
-    await expect(page.getByText("1. tur başladı!")).toBeVisible();
+    await expect(page.getByTestId("countdown")).toBeVisible();
+    await expect(page.getByText("Tur 1/5")).toBeVisible();
   }
 
   // Oyun sürerken katılan bir sonraki turdan oynar ve izleme ekranı görür.
   await joinRoom(e.page, code, "Geç Gelen");
   await expect(e.page.getByText("Oyun devam ediyor")).toBeVisible();
   await expect(e.page.getByText("2. turdan itibaren")).toBeVisible();
-  await expect(players(b.page)).toHaveCount(5);
+  await expect(players(e.page)).toHaveCount(5);
 
   // Sayfa yenilenince oyuncu kaldığı yerden devam eder.
   await c.page.reload();
-  await expect(c.page.getByText("1. tur başladı!")).toBeVisible();
+  await expect(c.page.getByTestId("countdown")).toBeVisible();
 
   for (const player of [b, c, d, e]) await player.context.close();
 });

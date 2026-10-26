@@ -14,12 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      memes: {
+        Row: {
+          boxes: Json
+          id: string
+          is_submitted: boolean
+          player_id: string
+          room_id: string
+          round: number
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          boxes?: Json
+          id?: string
+          is_submitted?: boolean
+          player_id: string
+          room_id: string
+          round: number
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          boxes?: Json
+          id?: string
+          is_submitted?: boolean
+          player_id?: string
+          room_id?: string
+          round?: number
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memes_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memes_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memes_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           active_from_round: number
           id: string
           is_connected: boolean
+          is_ready: boolean
           joined_at: string
+          rerolls_left: number
           room_id: string
           score: number
           user_id: string
@@ -29,7 +86,9 @@ export type Database = {
           active_from_round?: number
           id?: string
           is_connected?: boolean
+          is_ready?: boolean
           joined_at?: string
+          rerolls_left?: number
           room_id: string
           score?: number
           user_id: string
@@ -39,7 +98,9 @@ export type Database = {
           active_from_round?: number
           id?: string
           is_connected?: boolean
+          is_ready?: boolean
           joined_at?: string
+          rerolls_left?: number
           room_id?: string
           score?: number
           user_id?: string
@@ -68,6 +129,8 @@ export type Database = {
           round_seconds: number
           status: Database["public"]["Enums"]["room_status"]
           total_rounds: number
+          used_template_ids: string[]
+          vote_queue: string[]
         }
         Insert: {
           code: string
@@ -81,6 +144,8 @@ export type Database = {
           round_seconds?: number
           status?: Database["public"]["Enums"]["room_status"]
           total_rounds?: number
+          used_template_ids?: string[]
+          vote_queue?: string[]
         }
         Update: {
           code?: string
@@ -94,6 +159,8 @@ export type Database = {
           round_seconds?: number
           status?: Database["public"]["Enums"]["room_status"]
           total_rounds?: number
+          used_template_ids?: string[]
+          vote_queue?: string[]
         }
         Relationships: [
           {
@@ -105,11 +172,48 @@ export type Database = {
           },
         ]
       }
+      templates: {
+        Row: {
+          created_at: string
+          default_boxes: Json
+          height: number
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["template_kind"]
+          source_name: string
+          storage_path: string
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          default_boxes?: Json
+          height: number
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["template_kind"]
+          source_name: string
+          storage_path: string
+          width: number
+        }
+        Update: {
+          created_at?: string
+          default_boxes?: Json
+          height?: number
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["template_kind"]
+          source_name?: string
+          storage_path?: string
+          width?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      advance_phase: { Args: never; Returns: undefined }
       create_room: { Args: { p_username: string }; Returns: string }
       heartbeat: { Args: never; Returns: undefined }
       join_room: {
@@ -117,6 +221,10 @@ export type Database = {
         Returns: string
       }
       leave_room: { Args: never; Returns: undefined }
+      reroll_template: { Args: never; Returns: string }
+      save_meme: { Args: { p_boxes: Json }; Returns: undefined }
+      server_now: { Args: never; Returns: string }
+      set_ready: { Args: { p_ready: boolean }; Returns: undefined }
       start_game: { Args: never; Returns: undefined }
       update_settings: {
         Args: {
@@ -135,6 +243,7 @@ export type Database = {
         | "reveal"
         | "round_results"
         | "final"
+      template_kind: "image" | "gif"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -270,6 +379,7 @@ export const Constants = {
         "round_results",
         "final",
       ],
+      template_kind: ["image", "gif"],
     },
   },
 } as const

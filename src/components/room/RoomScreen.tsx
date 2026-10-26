@@ -10,7 +10,14 @@ import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
-import { useRoom, type RoomState } from "@/lib/supabase/use-room";
+import {
+  useRoom,
+  type Player,
+  type Room,
+  type RoomState,
+} from "@/lib/supabase/use-room";
+
+import { MemeEditor } from "@/components/game/MemeEditor";
 
 import { Lobby } from "./Lobby";
 import { PlayerList } from "./PlayerList";
@@ -53,45 +60,52 @@ export function RoomScreen({ code }: { code: string }) {
         </>
       )}
 
-      {state.status === "ready" &&
-        (state.room.status === "lobby" ? (
-          <Lobby room={state.room} players={state.players} me={state.me} />
-        ) : (
-          <div className="flex w-full flex-col gap-5">
-            <Card
-              className="flex flex-col items-center gap-2 text-center"
-              data-testid="game-status"
-            >
-              {state.me.active_from_round > state.room.current_round ? (
-                <>
-                  <h2 className="text-2xl font-black">
-                    {strings.room.spectating}
-                  </h2>
-                  <p className="font-bold text-ink-soft">
-                    {strings.room.spectatingDetail(state.me.active_from_round)}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-black">
-                    {strings.room.roundStarted(state.room.current_round)}
-                  </h2>
-                  <p className="font-bold text-ink-soft">
-                    {strings.room.gameComingSoon}
-                  </p>
-                </>
-              )}
-            </Card>
-            <Card>
-              <PlayerList
-                room={state.room}
-                players={state.players}
-                me={state.me}
-              />
-            </Card>
-          </div>
-        ))}
+      {state.status === "ready" && <GameView {...state} />}
     </main>
+  );
+}
+
+type GameProps = { room: Room; players: Player[]; me: Player };
+
+/** Odanın durumuna göre gösterilecek ekran. */
+function GameView({ room, players, me }: GameProps) {
+  if (room.status === "lobby") {
+    return <Lobby room={room} players={players} me={me} />;
+  }
+  const spectating = me.active_from_round > room.current_round;
+  if (room.status === "creating" && !spectating) {
+    return <MemeEditor room={room} players={players} me={me} />;
+  }
+
+  return (
+    <div className="flex w-full flex-col gap-5">
+      <Card
+        className="flex flex-col items-center gap-2 text-center"
+        data-testid="game-status"
+      >
+        {spectating ? (
+          <>
+            <h2 className="text-2xl font-black">{strings.room.spectating}</h2>
+            <p className="font-bold text-ink-soft">
+              {strings.room.spectatingDetail(me.active_from_round)}
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-black">
+              {strings.game.votingStarted}
+            </h2>
+            <p className="font-bold text-ink-soft">
+              {strings.game.votingCount(room.vote_queue.length)}{" "}
+              {strings.game.votingComingSoon}
+            </p>
+          </>
+        )}
+      </Card>
+      <Card>
+        <PlayerList room={room} players={players} me={me} />
+      </Card>
+    </div>
   );
 }
 

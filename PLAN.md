@@ -164,7 +164,15 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
   - `players.user_id` benzersiz: bir kullanıcı aynı anda tek odada olur; yeni odaya girince eskisinden çıkar. Bu sayede RPC'ler `room_id` almaz, odayı `auth.uid()`'den bulur.
   - `last_seen`, `players` yerine `private.player_heartbeats` tablosunda. Her heartbeat'te `players` güncellenseydi Realtime herkese gereksiz olay gönderirdi; `is_connected` sadece durum değişince güncellenir.
   - Bağlantı takibi Presence yerine yalnızca heartbeat ile (10 sn'de bir); 30 sn sessiz kalan oyuncu kopmuş sayılır ve host devri bu sırada sunucuda yapılır. Ayrı bir `transfer_host_if_needed` RPC'si yerine bu iş `heartbeat()` ve `leave_room()` içinde.
-  - `rerolls_left` ve `is_ready` Faz 2'de eklenecek.
+- **Faz 2'de uygulanan kararlar:**
+  - Şablon olarak WebP de kabul edilir. Sabit görseller WebP'ye (en fazla 1000 px), hareketli GIF/WebP'ler GIF'e (480 px) çevrilip Storage'a yüklenir; böylece Faz 4'teki GIF indirme hepsinde çalışır.
+  - Şablon görselleri herkese açık GitHub deposuna girmez (telif/boyut); sadece `templates/templates.json` girer.
+  - Kutu tanımı olmayan şablon klasik üst + alt kutuyla gelir.
+  - Şablon değiştirilince (pas) yeni şablonun varsayılan kutuları gelir; yazılmış metinler sıfırlanır.
+  - "Herkes hazır" kontrolü bu turda oynayan **bağlı** oyunculara bakar (kopmuş oyuncu turu bekletmez).
+  - Kutu başına en fazla 200 karakter (kötüye kullanıma karşı teknik sınır).
+  - `rooms.used_template_ids` bu oyunda dağıtılan şablonları, `rooms.vote_queue` oylanacak meme'leri (rastgele sırada) tutar.
+  - Süre bitiminden sonra 2 sn tolerans tanınır (son kayıtlar yetişsin); pg_cron işi 5 sn'de bir süresi geçen turları ilerletir.
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

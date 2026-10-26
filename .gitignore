@@ -48,3 +48,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# meme şablon görselleri (Supabase Storage'a yüklenir; depoya sadece kutu tanımları girer)
+/templates/*
+!/templates/templates.json

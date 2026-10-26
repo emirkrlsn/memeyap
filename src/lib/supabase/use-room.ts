@@ -84,14 +84,23 @@ export function useRoom(code: string) {
     }
 
     async function heartbeat() {
-      const { error } = await supabase.rpc("heartbeat");
-      if (error) scheduleRefresh(); // Ör. NOT_IN_ROOM: odadan çıkarılmış.
+      await supabase.rpc("heartbeat");
+      // Güvenlik ağı: kaçırılmış bir Realtime olayı ekranı en fazla bir aralık eski tutar.
+      // (Hata da olsa yenile: ör. NOT_IN_ROOM ise oyuncu odadan çıkarılmıştır.)
+      scheduleRefresh();
     }
 
     function startLive(roomId: string) {
       if (channel) return;
       channel = supabase
-        .channel(`room:${roomId}`)
+        // replication_ready: veritabanı dinlemesi gerçekten başlayınca "system" olayı gelir.
+        // "SUBSCRIBED" ondan biraz önce gelir; arada olan değişiklikler kaçabilir.
+        .channel(`room:${roomId}`, {
+          config: { broadcast: { replication_ready: true } },
+        })
+        .on("system", {}, (payload: { status?: string }) => {
+          if (payload.status === "ok") scheduleRefresh();
+        })
         .on(
           "postgres_changes",
           {
