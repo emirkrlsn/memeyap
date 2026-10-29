@@ -51,6 +51,10 @@ test("15 kişilik oda: aynı anda katılım, 16. reddedilir, oyun akar", async (
   await Promise.all(
     room.map(async (page) => {
       const button = page.getByRole("button", { name: /^Beğenildi/ });
+      // Meme yüklenene kadar bekle: ya oy butonu ya da "senin meme'in" görünür.
+      await expect(
+        button.or(page.getByText("Bu senin meme'in!")),
+      ).toBeVisible();
       if (await button.isVisible()) await button.click();
     }),
   );

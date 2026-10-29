@@ -69,7 +69,7 @@ Supabase şeması **migration dosyalarıyla** yönetilecek (`supabase/migrations
 
 ### 2.3 Oylama aşaması
 - Meme'ler **tek tek** gösterilir; **tüm oyuncular aynı anda aynı meme'i** oylar. Sıra rastgeledir.
-- Her meme için **30 saniye** süre vardır.
+- Her meme için **30 saniye** süre vardır. *(Güncelleme: 15 sn, bkz. Mimari ilkeler → Oyun sonrası istekler.)*
 - 5 seçenek ve puanları:
 
   | Seçenek | Puan |
@@ -204,6 +204,11 @@ Aşağıdakiler henüz karara bağlanmadı. Varsayılan bir değer uygulama; ilg
   - Eğlenceli dokunuşlar (hepsi onaylandı): oyun sonu konfeti + zafer sesi; son 10 sn tık sesi ve titreşim; oy ve "Hazırım"da "pop"; ses aç/kapa düğmesi (titreşimi de kapatır, varsayılan açık); lobide "X katıldı!" bildirimi; tur sonucunda meme'ler sonuncudan birinciye sırayla belirir. Sesler dosyasız (Web Audio). "Hareketi azalt" tercihinde animasyon/konfeti kapanır.
   - Erişilebilirlik: canlı renkli zeminlerde koyu yazı (WCAG AA kontrast), oda kodu butonunun erişilebilir adı görünen kodla aynı; axe testi ana sayfa, lobi, editör, oylama ve tur sonucunda temiz.
   - Uç durum düzeltmesi: oylamada ekrandaki meme'in sahibi (ör. host) ayrılınca `leave_room` hata veriyordu; düzeltildi, oylama sıradaki meme'le sürer.
+- **Oyun sonrası istekler (Ekim 2026):**
+  - Her meme oluşturma ve oylama aşamasından önce 3 sn giriş ekranı: "Oyun başlıyor!" (1. tur), "N. tur başlıyor!" (sonraki turlar), "Oylama başlıyor!" (ilk meme), "Sıradaki meme!" (sonrakiler). Süre sunucuda (`rooms.phase_starts_at`); aşama süresi girişten sonra işler.
+  - Her meme için oylama süresi **15 sn** (önce 30).
+  - Ara sıralama **20 sn** geri sayar, sonra sonraki tur kendiliğinden başlar (host beklenmez; `next_round` RPC'si hâlâ var ama arayüzde düğme yok).
+  - Editörde "Hazırım" üstte, "Şablonu değiştir" altında (her ekran boyutunda).
 - Puan eşlemesi **tek yerde** tanımlansın (bir SQL fonksiyonu + TypeScript'te aynı sabit, testle eşitliği doğrulansın).
 
 ---

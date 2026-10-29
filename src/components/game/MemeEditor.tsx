@@ -236,7 +236,16 @@ export function MemeEditor({ room, players, me }: Props) {
       </Card>
 
       {!timeUp && (
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3">
+          <Button
+            variant={me.is_ready ? "ghost" : "success"}
+            size="lg"
+            fullWidth
+            disabled={busy}
+            onClick={toggleReady}
+          >
+            {me.is_ready ? strings.game.unready : strings.game.ready}
+          </Button>
           {!me.is_ready && (
             <Button
               variant="secondary"
@@ -247,15 +256,6 @@ export function MemeEditor({ room, players, me }: Props) {
               {strings.game.reroll(me.rerolls_left)}
             </Button>
           )}
-          <Button
-            variant={me.is_ready ? "ghost" : "success"}
-            size="lg"
-            fullWidth
-            disabled={busy}
-            onClick={toggleReady}
-          >
-            {me.is_ready ? strings.game.unready : strings.game.ready}
-          </Button>
         </div>
       )}
       {me.is_ready && !timeUp && (

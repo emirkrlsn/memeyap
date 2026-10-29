@@ -66,6 +66,12 @@ export const strings = {
     boxPlaceholder: "Komik bir şey yaz…",
     editorHint: "Kutuları sürükleyerek taşı, sarı köşeden boyutlandır.",
   },
+  intro: {
+    gameStarting: "Oyun başlıyor!",
+    roundStarting: (round: number) => `${round}. tur başlıyor!`,
+    votingStarting: "Oylama başlıyor!",
+    nextMeme: "Sıradaki meme!",
+  },
   voting: {
     progress: (index: number, total: number) => `Meme ${index}/${total}`,
     question: "Bu meme nasıl?",
@@ -88,8 +94,8 @@ export const strings = {
     noMemes: "Bu turda oylanan meme yok.",
     madeBy: "Yapan",
     unknownOwner: "Oyundan ayrılan bir oyuncu",
-    nextRound: "Sonraki tura geç",
-    waitingForHost: "Yöneticinin sonraki turu başlatması bekleniyor…",
+    nextRoundIn: (seconds: number) =>
+      `Sonraki tur ${seconds} saniye içinde başlıyor…`,
     gameOver: "Oyun bitti!",
     endedEarly:
       "Bağlı oyuncu sayısı 3'ün altına düştüğü için oyun erken bitti.",

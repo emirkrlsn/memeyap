@@ -11,6 +11,8 @@ import { formatPoints, rankByScore } from "@/lib/scoreboard";
 import { playSound } from "@/lib/sound";
 import { errorMessage, strings } from "@/lib/strings";
 import { getSupabaseClient } from "@/lib/supabase/client";
+import { useSecondsLeft } from "@/lib/supabase/server-clock";
+import { useAdvanceWhenDue } from "@/lib/supabase/use-advance";
 import type { Player, Room } from "@/lib/supabase/use-room";
 
 import { RoundMemes } from "./RoundMemes";
@@ -51,11 +53,13 @@ export function Results({ room, players, me }: Props) {
     };
   }, [isFinal]);
 
-  async function hostAction() {
+  // Ara sıralama 20 sn gösterilir; sonra sunucu sonraki turu kendiliğinden başlatır.
+  const secondsLeft = useSecondsLeft(isFinal ? null : room.phase_ends_at);
+  useAdvanceWhenDue(secondsLeft, 0.5);
+
+  async function restart() {
     setBusy(true);
-    const { error } = await getSupabaseClient().rpc(
-      isFinal ? "restart_room" : "next_round",
-    );
+    const { error } = await getSupabaseClient().rpc("restart_room");
     if (error) {
       showToast(errorMessage(error), "error");
       setBusy(false);
@@ -102,25 +106,26 @@ export function Results({ room, players, me }: Props) {
     </Card>
   );
 
-  const action = isHost ? (
+  const action = !isFinal ? (
+    <p
+      data-testid="next-round-countdown"
+      className="rounded-2xl bg-sun/40 px-4 py-3 text-center font-extrabold"
+    >
+      {strings.results.nextRoundIn(Math.max(0, Math.ceil(secondsLeft ?? 0)))}
+    </p>
+  ) : isHost ? (
     <Button
       size="lg"
       variant="success"
       fullWidth
       disabled={busy}
-      onClick={hostAction}
+      onClick={restart}
     >
-      {busy
-        ? strings.common.loading
-        : isFinal
-          ? strings.results.playAgain
-          : strings.results.nextRound}
+      {busy ? strings.common.loading : strings.results.playAgain}
     </Button>
   ) : (
     <p className="animate-pulse text-center font-extrabold text-ink-soft">
-      {isFinal
-        ? strings.results.waitingForRestart
-        : strings.results.waitingForHost}
+      {strings.results.waitingForRestart}
     </p>
   );
 

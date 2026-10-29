@@ -134,6 +134,7 @@ export type Database = {
           host_player_id: string | null
           id: string
           phase_ends_at: string | null
+          phase_starts_at: string | null
           reroll_limit: number
           round_seconds: number
           status: Database["public"]["Enums"]["room_status"]
@@ -152,6 +153,7 @@ export type Database = {
           host_player_id?: string | null
           id?: string
           phase_ends_at?: string | null
+          phase_starts_at?: string | null
           reroll_limit?: number
           round_seconds?: number
           status?: Database["public"]["Enums"]["room_status"]
@@ -170,6 +172,7 @@ export type Database = {
           host_player_id?: string | null
           id?: string
           phase_ends_at?: string | null
+          phase_starts_at?: string | null
           reroll_limit?: number
           round_seconds?: number
           status?: Database["public"]["Enums"]["room_status"]

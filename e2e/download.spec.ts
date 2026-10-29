@@ -187,6 +187,10 @@ test("indirme: GIF her karede yazılı, PNG şablon boyutunda, oyun sonunda ZIP"
     }
     for (const page of [gifPage, pngPage, thirdPage]) {
       const button = page.getByRole("button", { name: /Beğenildi/ }).first();
+      // Meme yüklenene kadar bekle: ya oy butonu ya da "senin meme'in" görünür.
+      await expect(
+        button.or(page.getByText("Bu senin meme'in!")),
+      ).toBeVisible();
       if (await button.isVisible()) await button.click();
     }
   }

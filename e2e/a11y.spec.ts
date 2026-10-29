@@ -65,7 +65,12 @@ test("erişilebilirlik: ana sayfa, lobi, editör, oylama, tur sonucu", async ({
   for (let meme = 1; meme <= 3; meme++) {
     await expect(host.getByText(`Meme ${meme}/3`)).toBeVisible();
     for (const page of [host, second, third]) {
+      await expect(page.getByText(`Meme ${meme}/3`)).toBeVisible();
       const button = page.getByRole("button", { name: /^Beğenildi/ });
+      // Meme yüklenene kadar bekle: ya oy butonu ya da "senin meme'in" görünür.
+      await expect(
+        button.or(page.getByText("Bu senin meme'in!")),
+      ).toBeVisible();
       if (await button.isVisible()) await button.click();
     }
   }

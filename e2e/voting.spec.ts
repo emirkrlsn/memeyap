@@ -30,6 +30,11 @@ test("3 oyuncuyla tam tur: oluştur → oyla → tur sonucu → sonraki tur", as
   await expect(pages[0].getByTestId("player")).toHaveCount(3);
   await pages[0].getByRole("button", { name: "Oyunu Başlat" }).click();
 
+  // Her aşamadan önce 3 sn'lik giriş ekranı.
+  const intro = (text: string) =>
+    expect(pages[1].getByTestId("phase-intro")).toContainText(text);
+  await intro("Oyun başlıyor!");
+
   // Herkes yazar ve hazır olur.
   for (const [index, page] of pages.entries()) {
     await page
@@ -39,6 +44,7 @@ test("3 oyuncuyla tam tur: oluştur → oyla → tur sonucu → sonraki tur", as
   for (const page of pages) {
     await page.getByRole("button", { name: "Hazırım!" }).click();
   }
+  await intro("Oylama başlıyor!");
 
   // Ekrandaki meme kimin? Sadece sahibi "senin meme'in" yazısını görür.
   async function ownerIndex() {
@@ -65,6 +71,7 @@ test("3 oyuncuyla tam tur: oluştur → oyla → tur sonucu → sonraki tur", as
       await expect(page.getByTestId("voting")).toBeVisible();
       await expect(page.getByText(`Meme ${memeNumber}/3`)).toBeVisible();
     }
+    if (memeNumber > 1) await intro("Sıradaki meme!");
     const owner = await ownerIndex();
     owners.push(owner);
     const [first, second] = pages.filter((_, index) => index !== owner);
@@ -122,12 +129,11 @@ test("3 oyuncuyla tam tur: oluştur → oyla → tur sonucu → sonraki tur", as
     );
     expect(shown).toEqual([...scores].sort((a, b) => b - a));
   }
-  await expect(
-    pages[1].getByText("Yöneticinin sonraki turu başlatması bekleniyor"),
-  ).toBeVisible();
-
-  // Sonraki turu yönetici başlatır.
-  await pages[0].getByRole("button", { name: "Sonraki tura geç" }).click();
+  // Ara sıralama 20 sn sayar, sonra sonraki tur kendiliğinden başlar (test süreyi ileri sarar).
+  await expect(pages[1].getByTestId("next-round-countdown")).toContainText(
+    "saniye içinde başlıyor",
+  );
+  await fastForward(code);
   for (const page of pages) {
     await expect(page.getByText("Tur 2/3")).toBeVisible();
   }

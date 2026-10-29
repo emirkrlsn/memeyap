@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { enter, openPlayer, runSql } from "./helpers";
+import { enter, fastForward, openPlayer, runSql } from "./helpers";
 
 test.skip(({ isMobile }) => isMobile, "Çok oyunculu test sadece masaüstünde");
 
@@ -57,7 +57,7 @@ test("3 turluk tam oyun: final sıralaması (eşitlik 1,1,2), tekrar oyna, silme
 
     if (round < 3) {
       await expect(pages[0].getByText(`${round}. tur bitti!`)).toBeVisible();
-      await pages[0].getByRole("button", { name: "Sonraki tura geç" }).click();
+      await fastForward(code); // 20 sn'lik ara sıralamayı bekleme; tur kendiliğinden başlar
     }
   }
 

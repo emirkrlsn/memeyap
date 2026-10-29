@@ -20,6 +20,7 @@ import {
 } from "@/lib/supabase/use-room";
 
 import { MemeEditor } from "@/components/game/MemeEditor";
+import { PhaseIntro } from "@/components/game/PhaseIntro";
 import { Results } from "@/components/game/Results";
 import { VotingScreen } from "@/components/game/VotingScreen";
 
@@ -68,7 +69,12 @@ export function RoomScreen({ code }: { code: string }) {
         </>
       )}
 
-      {state.status === "ready" && <GameView {...state} />}
+      {state.status === "ready" && (
+        <>
+          <GameView {...state} />
+          <PhaseIntro room={state.room} />
+        </>
+      )}
     </main>
   );
 }
