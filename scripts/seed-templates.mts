@@ -49,6 +49,20 @@ async function listUploaded(): Promise<Set<string>> {
   }
 }
 
+/** Telefonda hızlı açılsın: GIF 5 MB'ı aşarsa genişliği kademeli küçült. */
+const MAX_GIF_BYTES = 5 * 1024 * 1024;
+async function smallGif(input: Buffer): Promise<Buffer> {
+  let output = Buffer.alloc(0);
+  for (const width of [480, 360, 280, 200]) {
+    output = await sharp(input, { animated: true })
+      .resize({ width, withoutEnlargement: true })
+      .gif()
+      .toBuffer();
+    if (output.length <= MAX_GIF_BYTES) break;
+  }
+  return output;
+}
+
 const uploaded = await listUploaded();
 const files = readdirSync(TEMPLATE_DIR)
   .filter((file) => /\.(png|jpe?g|webp|gif)$/i.test(file))
@@ -68,13 +82,12 @@ for (const file of files) {
   seen.set(hash, file);
 
   const animated = ((await sharp(input).metadata()).pages ?? 1) > 1;
-  const resized = sharp(input, { animated }).resize({
-    width: animated ? 480 : 1000,
-    withoutEnlargement: true,
-  });
-  const output = await (
-    animated ? resized.gif() : resized.webp({ quality: 85 })
-  ).toBuffer();
+  const output = animated
+    ? await smallGif(input)
+    : await sharp(input)
+        .resize({ width: 1000, withoutEnlargement: true })
+        .webp({ quality: 85 })
+        .toBuffer();
   const meta = await sharp(output).metadata();
   const storagePath = `${hash}.${animated ? "gif" : "webp"}`;
 
